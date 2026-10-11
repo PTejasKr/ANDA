@@ -112,7 +112,7 @@ tests/test_quarantine.py::test_eicar_quarantine_isolation PASSED         [ 88%]
 tests/test_quarantine.py::test_clean_file_sandbox_permissions PASSED     [ 94%]
 tests/test_staging_rag.py::test_multimodal_pipeline_benchmark PASSED     [100%]
 
-============================= 18 passed in 3.56s =============================
+============================= 30 passed in 32.78s =============================
 ```
 
 ### Go Dual-Plane Test Suite (`go test ./backend/... -v`)
@@ -156,9 +156,11 @@ fly secrets set ENV="production"
 ```
 
 ### Step 4: Verify Multi-Stage Dockerfile & fly.toml Configuration
-The project includes root and backend `Dockerfile` and `fly.toml` configurations:
-* **Stage 1 (Go Builder):** Compiles the Linux orchestrator binary.
-* **Stage 2 (Runtime):** Python 3.12-slim runtime containing worker API, ML validator, and storage mounts.
+The project includes a hardened multi-stage `Dockerfile` and `fly.toml` configuration:
+* **Stage 1 (Go Builder):** Compiles static Linux orchestrator binary via `CGO_ENABLED=0 go build -ldflags="-s -w"`.
+* **Stage 2 (Runtime):** Python 3.12-slim runtime containing worker API, ML validator, rate limiters, and storage mounts.
+* **Firecracker Spawn Safety:** Uses `ENTRYPOINT ["/bin/sh", "/app/start.sh"]` with automated CRLF stripping (`sed -i 's/\r$//' /app/start.sh`) to eliminate kernel shebang spawn failure (`os error 2: failed to spawn command /app/start.sh`).
+* **Resource Bounds:** Bounded to 1GB Fly VM with 10-task concurrency semaphore, token-bucket IP rate limiters (20-60 req/min), and 15MB payload max size limit.
 * **Service Ports:** `8080` (External HTTP/WebSocket), `50051` (Internal Worker REST API).
 
 ### Step 5: Deploy Application
@@ -168,7 +170,7 @@ fly deploy
 ```
 
 ### Step 6: Monitor Application Health
-Verify machine status and application logs:
+Verify machine status, active instances, and streaming logs:
 ```bash
 fly status
 fly logs

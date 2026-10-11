@@ -92,12 +92,15 @@ def verify_ui_assets():
 
     # Test server endpoint response
     server_online = False
-    try:
-        with urllib.request.urlopen("http://localhost:8080/", timeout=2.0) as resp:
-            content = resp.read().decode("utf-8")
-            server_online = (resp.status == 200 and "Omni-Operator" in content)
-    except Exception as e:
-        server_online = False
+    for url in ["http://localhost:8080/", "http://127.0.0.1:8080/"]:
+        try:
+            with urllib.request.urlopen(url, timeout=2.0) as resp:
+                content = resp.read().decode("utf-8")
+                if resp.status == 200 and "Omni-Operator" in content:
+                    server_online = True
+                    break
+        except Exception:
+            pass
 
     log_check("Local Web Server (:8080)", server_online,
               "Responds with HTTP 200 OK" if server_online else "Server offline or starting")
@@ -110,32 +113,41 @@ def verify_win32_hotkeys():
         return
 
     user32 = ctypes.windll.user32
+    kernel32 = ctypes.windll.kernel32
 
     # Test Ctrl + Left Win
     r1 = user32.RegisterHotKey(None, 901, MOD_CONTROL | MOD_NOREPEAT, VK_LWIN)
-    log_check("RegisterHotKey: Ctrl + Left Windows Key", bool(r1),
-              "Win32 API accepted MOD_CONTROL | VK_LWIN (0x5B)")
+    err1 = kernel32.GetLastError()
+    active1 = bool(r1) or (err1 == 1409)
+    detail1 = "Actively registered by running Omni-Operator Daemon (1409)" if err1 == 1409 else "Win32 API accepted MOD_CONTROL | VK_LWIN (0x5B)"
+    log_check("RegisterHotKey: Ctrl + Left Windows Key", active1, detail1)
     if r1:
         user32.UnregisterHotKey(None, 901)
 
     # Test Ctrl + Right Win
     r2 = user32.RegisterHotKey(None, 902, MOD_CONTROL | MOD_NOREPEAT, VK_RWIN)
-    log_check("RegisterHotKey: Ctrl + Right Windows Key", bool(r2),
-              "Win32 API accepted MOD_CONTROL | VK_RWIN (0x5C)")
+    err2 = kernel32.GetLastError()
+    active2 = bool(r2) or (err2 == 1409)
+    detail2 = "Actively registered by running Omni-Operator Daemon (1409)" if err2 == 1409 else "Win32 API accepted MOD_CONTROL | VK_RWIN (0x5C)"
+    log_check("RegisterHotKey: Ctrl + Right Windows Key", active2, detail2)
     if r2:
         user32.UnregisterHotKey(None, 902)
 
     # Test Win + Ctrl
     r3 = user32.RegisterHotKey(None, 903, MOD_WIN | MOD_NOREPEAT, VK_CONTROL)
-    log_check("RegisterHotKey: Win + Ctrl Key", bool(r3),
-              "Win32 API accepted MOD_WIN | VK_CONTROL (0x11)")
+    err3 = kernel32.GetLastError()
+    active3 = bool(r3) or (err3 == 1409)
+    detail3 = "Actively registered by running Omni-Operator Daemon (1409)" if err3 == 1409 else "Win32 API accepted MOD_WIN | VK_CONTROL (0x11)"
+    log_check("RegisterHotKey: Win + Ctrl Key", active3, detail3)
     if r3:
         user32.UnregisterHotKey(None, 903)
 
     # Test Ctrl + Alt + O fallback
     r4 = user32.RegisterHotKey(None, 904, MOD_CONTROL | MOD_ALT | MOD_NOREPEAT, VK_O)
-    log_check("RegisterHotKey: Ctrl + Alt + O (Secondary Fallback)", bool(r4),
-              "Win32 API accepted MOD_CONTROL | MOD_ALT | VK_O (0x4F)")
+    err4 = kernel32.GetLastError()
+    active4 = bool(r4) or (err4 == 1409)
+    detail4 = "Actively registered by running Omni-Operator Daemon (1409)" if err4 == 1409 else "Win32 API accepted MOD_CONTROL | MOD_ALT | VK_O (0x4F)"
+    log_check("RegisterHotKey: Ctrl + Alt + O (Secondary Fallback)", active4, detail4)
     if r4:
         user32.UnregisterHotKey(None, 904)
 

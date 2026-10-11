@@ -49,11 +49,14 @@ SERVER_SCRIPT = os.path.join(SCRIPT_DIR, "server.py")
 
 
 def is_server_running():
-    try:
-        with urllib.request.urlopen(f"{APP_URL}/", timeout=1.0) as resp:
-            return resp.status == 200
-    except Exception:
-        return False
+    for url in [f"{APP_URL}/", "http://127.0.0.1:8080/"]:
+        try:
+            with urllib.request.urlopen(url, timeout=1.0) as resp:
+                if resp.status == 200:
+                    return True
+        except Exception:
+            pass
+    return False
 
 
 def ensure_server_running():

@@ -1,13 +1,14 @@
 """
 Omni-Operator Web Server
 Serves the transparent popup UI frontend on the configured ORCHESTRATOR_PORT (8080).
-Uses Python standard library http.server for zero overhead and high stability.
+Uses Python standard library ThreadingHTTPServer with dual-stack IPv4/IPv6 for high stability.
 """
 
 import os
 import sys
-import functools
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+import socket
+import contextlib
+from http.server import ThreadingHTTPServer, HTTPServer, SimpleHTTPRequestHandler
 
 PORT = int(os.environ.get("ORCHESTRATOR_PORT", 8080))
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "frontend")
@@ -28,16 +29,38 @@ class OmniHandler(SimpleHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
 
+    def log_message(self, format, *args):
+        # Suppress noisy console logs in headless daemon mode
+        if sys.stdout is not None:
+            super().log_message(format, *args)
+
+
+class DualStackServer(ThreadingHTTPServer):
+    address_family = socket.AF_INET6
+
+    def server_bind(self):
+        with contextlib.suppress(Exception):
+            self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+        return super().server_bind()
+
 
 def run():
-    server_address = ("0.0.0.0", PORT)
-    httpd = HTTPServer(server_address, OmniHandler)
-    print(f"[*] Omni-Operator UI running at: http://localhost:{PORT}")
-    print(f"[*] Serving files from: {FRONTEND_DIR}")
+    try:
+        httpd = DualStackServer(("::", PORT), OmniHandler)
+    except Exception:
+        # Fallback to standard IPv4
+        httpd = HTTPServer(("0.0.0.0", PORT), OmniHandler)
+
+    if sys.stdout is not None:
+        print(f"[*] Omni-Operator UI running at: http://localhost:{PORT}")
+        print(f"[*] Serving files from: {FRONTEND_DIR}")
+
     try:
         httpd.serve_forever()
-    except KeyboardInterrupt:
-        print("\n[*] Server stopped.")
+    except (KeyboardInterrupt, SystemExit):
+        pass
+    finally:
+        httpd.server_close()
 
 
 if __name__ == "__main__":

@@ -108,32 +108,97 @@ python execution/run_all_tests.py
 ## 4. Local Deployment & Running
 
 ### Option A: Complete Automated Local Stack
-Start the Elevated Daemon, Python Worker, and Go Orchestrator with one command:
+Start the Elevated Daemon, Python Worker, Go Orchestrator, and optional Global Hotkey listener with one command:
 ```bash
+# Standard local stack (Daemon + Worker + Orchestrator)
 python execution/deploy_local.py
+
+# With Windows system-wide [Ctrl + Win + Space] Hotkey Listener
+python execution/deploy_local.py --with-hotkey
 ```
 Open **[http://localhost:8080/](http://localhost:8080/)** in your browser.
 
-### Option B: Individual Service Launch
-1. **Elevated Daemon**:
+### Option B: Local Gemma Brain (LM Studio or Docker)
+1. **Via LM Studio (Zero Docker overhead)**:
+   - Launch LM Studio on your machine.
+   - Load any Gemma model (e.g., `gemma-2-2b-it` or `gemma-2-9b-it`).
+   - Start Local Server on `http://localhost:1234` (standard OpenAI-compatible endpoint).
+   - Project ANDA automatically detects and routes inference to LM Studio!
+2. **Via Docker Compose**:
    ```bash
-   ./daemon.exe
+   docker compose up -d anda-gemma-brain anda-qdrant-memory
    ```
-2. **Python Worker Plane**:
-   ```bash
-   python backend/worker/worker_api.py
-   ```
-3. **Go Orchestrator & File Manager**:
-   ```bash
-   ./orchestrator.exe
-   ```
+   This spawns Ollama hosting `gemma2:2b` on port 11434 and Qdrant vector memory on port 6333.
 
 ---
 
-## 5. Security & Isolation Guarantees
+## 5. Voice & Speech-to-Text (STT) Engine
+
+Project ANDA uses a **100% free, highly accurate speech recognition architecture**:
+- **Browser-Native Web Speech API (GBoard Engine)**: In Google Chrome/Chromium, voice input natively connects to Google's cloud speech recognition engine (the identical backend powering GBoard voice typing) with zero API keys and real-time streaming tokens.
+- **Backend Fallback (`SpeechRecognition`)**: Raw audio captured by the agent or audio deck can be forwarded to `/api/stt/transcribe` which leverages Google's free speech recognition tier (`recognize_google`).
+- **Edge Whisper**: When running via Cloudflare Workers, `@cf/openai/whisper` is available on the free tier (10,000 neurons/day).
+
+---
+
+## 6. Global Windows / Super Shortcut
+
+Project ANDA registers a native Windows Win32 global hotkey:
+- **Shortcut**: `Ctrl + Windows (Super) + Space` (fallback: `Ctrl + Win + ~`)
+- **Action**: Summons the Project ANDA HUD from anywhere in Windows, focuses the voice input bar, and streams voice commands directly into the Orchestrator.
+- **Standalone Runner**:
+  ```bash
+  python execution/global_hotkey_listener.py
+  ```
+
+---
+
+## 7. Cloud & Edge Deployment (Fly.io + Cloudflare Workers)
+
+Project ANDA can be deployed online using generous free-tier services:
+
+```
+[Browser / Mobile]
+       │
+       ▼
+[Cloudflare Edge Worker] (Free Tier: 100k req/day + 10k AI neurons/day)
+  ├── Workers AI Gemma 7B:  @cf/google/gemma-7b-it (Reasoning & Intent)
+  ├── Workers AI Whisper:   @cf/openai/whisper    (Cloud STT)
+  └── Reverse Proxy / WSS Gate
+       │
+       ▼
+[Fly.io Micro-VM] (Free Tier: 3 shared-cpu-1x 256MB VMs, port 8080)
+  ├── Go Orchestrator (Intent filter & File Manager)
+  └── Python Worker Plane (RAG & Data Extractor)
+       │ (Secure Outbound WebSocket / IPC Handshake)
+       ▼
+[Local Physical Machine]
+  └── Elevated Go Daemon (Windows Named Pipe - Physical Hardware Ops)
+```
+
+### Validate Cloud Configurations:
+```bash
+python execution/deploy_cloud_status.py
+```
+
+### Deploy to Cloudflare Workers:
+```bash
+cd cloudflare
+npx wrangler deploy
+```
+
+### Deploy to Fly.io:
+```bash
+fly deploy
+```
+
+---
+
+## 8. Security & Isolation Guarantees
 1. **Dual-Plane Separation**: Worker plane runs completely unprivileged. No shell access is permitted across IPC.
 2. **Strict IPC Capability Tokens**: The Elevated Daemon accepts ONLY structured JSON tokens with explicit action specifications (`flash_usb`, `os_update`, `quarantine_isolate`). Raw shell commands are rejected immediately with `UNAUTHORIZED_PAYLOAD`.
 3. **Human-In-The-Loop (HITL) Gate**: Elevated tasks halt execution and require a physical button click. A 60-second countdown timeout automatically safe-fails if unconfirmed.
 4. **Zero-Trust Sandbox**: Downloaded files are placed in `storage/quarantine/sandbox/` with execute permissions stripped.
 5. **EICAR Malware Defense**: Known signatures and malicious executables are isolated and locked into `storage/quarantine/locked/` with forensic JSON manifests.
 6. **Prompt Injection Defense**: Regex and heuristic pre-execution hooks detect system overrides (`[SYSTEM]`, `IGNORE PREVIOUS INSTRUCTIONS`) and dangerous execution syntax (`powershell -enc`, `format C:`, `rmdir /s /q`).
+

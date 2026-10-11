@@ -13,8 +13,15 @@ def run_command(cmd, name):
     print(f"[*] Running: {name}")
     print(f"[*] Command: {' '.join(cmd)}")
     print(f"{'='*70}")
+    import os
+    env = os.environ.copy()
+    if sys.platform == "win32":
+        os.makedirs("d:\\tmp", exist_ok=True)
+        env["GOTMPDIR"] = "d:\\tmp"
+        env["TEMP"] = "d:\\tmp"
+        env["TMP"] = "d:\\tmp"
     start = time.perf_counter()
-    res = subprocess.run(cmd, capture_output=True, text=True)
+    res = subprocess.run(cmd, capture_output=True, text=True, env=env)
     elapsed = time.perf_counter() - start
 
     if res.stdout:

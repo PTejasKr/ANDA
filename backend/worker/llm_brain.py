@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 import urllib.request
 import urllib.error
 from typing import Any, Dict, Optional
@@ -23,14 +24,20 @@ class LLMBrain:
         self.lm_studio_url = lm_studio_url or os.environ.get("LM_STUDIO_URL", "http://127.0.0.1:1234/v1")
         self.docker_ollama_url = docker_ollama_url or os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
         self.gemini_api_key = gemini_api_key or os.environ.get("GEMINI_API_KEY", "")
+        self._cached_status: Optional[Dict[str, Any]] = None
+        self._last_status_time: float = 0.0
 
-    def get_brain_status(self) -> Dict[str, Any]:
-        """Probes all local and cloud brain backends to report available inference providers."""
+    def get_brain_status(self, force_refresh: bool = False) -> Dict[str, Any]:
+        """Probes all local and cloud brain backends to report available inference providers (cached 3s)."""
+        now = time.time()
+        if not force_refresh and self._cached_status and (now - self._last_status_time < 3.0):
+            return self._cached_status
+
         lm_studio_active = False
         lm_studio_model = ""
         try:
             req = urllib.request.Request(f"{self.lm_studio_url}/models", headers={"User-Agent": "ANDA-Brain/1.0"})
-            with urllib.request.urlopen(req, timeout=1.0) as resp:
+            with urllib.request.urlopen(req, timeout=0.25) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
                 models = data.get("data", [])
                 if models:
@@ -43,7 +50,7 @@ class LLMBrain:
         docker_model = ""
         try:
             req = urllib.request.Request(f"{self.docker_ollama_url}/api/tags", headers={"User-Agent": "ANDA-Brain/1.0"})
-            with urllib.request.urlopen(req, timeout=1.0) as resp:
+            with urllib.request.urlopen(req, timeout=0.25) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
                 models = data.get("models", [])
                 if models:
@@ -63,13 +70,16 @@ class LLMBrain:
         elif gemini_available:
             active_provider = "google_gemini_free_tier"
 
-        return {
+        status_result = {
             "active_provider": active_provider,
             "lm_studio": {"available": lm_studio_active, "url": self.lm_studio_url, "model": lm_studio_model},
             "docker_ollama": {"available": docker_active, "url": self.docker_ollama_url, "model": docker_model},
             "gemini_cloud": {"configured": gemini_available},
             "cloudflare_workers_ai": {"model": "@cf/google/gemma-7b-it", "free_tier": True},
         }
+        self._cached_status = status_result
+        self._last_status_time = now
+        return status_result
 
     def _query_lm_studio(self, prompt: str, system_prompt: str) -> Optional[str]:
         """Queries local LM Studio OpenAI-compatible endpoint."""

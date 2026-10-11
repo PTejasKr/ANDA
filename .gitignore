@@ -21,6 +21,9 @@ token.json
 
 # Temporary files and data storage
 .tmp/
+tmp/
+.wrangler/
+cloudflare/.wrangler/
 storage/ingest/*
 !storage/ingest/.gitkeep
 storage/staging/*

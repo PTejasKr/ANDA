@@ -11,7 +11,7 @@ import time
 import requests
 
 
-def start_stack():
+def start_stack(with_hotkey: bool = False):
     print("\n" + "="*70)
     print("[*] DEPLOYING OMNI-OPERATOR OS AGENT (LOCAL LEVEL)")
     print("="*70)
@@ -41,6 +41,12 @@ def start_stack():
     orch_proc = subprocess.Popen([os.path.abspath("orchestrator.exe")], env=orch_env)
 
     procs = [daemon_proc, worker_proc, orch_proc]
+
+    # Optional: Start Global Hotkey Listener
+    if with_hotkey:
+        print("[+] Spawning Windows Global Hotkey Listener [Ctrl + Win + Space]...")
+        hotkey_proc = subprocess.Popen([sys.executable, os.path.abspath("execution/global_hotkey_listener.py")])
+        procs.append(hotkey_proc)
 
     # Wait for services to initialize
     print("\n[*] Waiting for services to become responsive...")
@@ -88,12 +94,17 @@ def start_stack():
     except Exception as e:
         print(f"[!] Health check failed: {e}")
         for p in procs:
-            p.terminate()
+            try:
+                p.terminate()
+                p.wait(timeout=1.0)
+            except Exception:
+                pass
         raise
 
 
 if __name__ == "__main__":
-    procs = start_stack()
+    with_hotkey = "--with-hotkey" in sys.argv
+    procs = start_stack(with_hotkey=with_hotkey)
     # Keep running or exit cleanly if run in batch mode
     if "--verify-only" in sys.argv:
         print("[*] Verification mode complete. Stopping services...")

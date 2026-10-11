@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -10,17 +11,23 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 )
 
 type OrchestratorServer struct {
-	router      *Router
-	ipcClient   *IPCClient
-	workerHost  string
-	storageRoot string
-	port        string
+	router           *Router
+	ipcClient        *IPCClient
+	workerHost       string
+	storageRoot      string
+	port             string
+	workerClient     *http.Client
+	globalLimiter    *IPRateLimiter
+	commandLimiter   *IPRateLimiter
+	commandSemaphore chan struct{}
 }
 
 func NewOrchestratorServer() *OrchestratorServer {
@@ -38,11 +45,15 @@ func NewOrchestratorServer() *OrchestratorServer {
 	}
 
 	return &OrchestratorServer{
-		router:      NewRouter(),
-		ipcClient:   NewIPCClient("", ""),
-		workerHost:  workerHost,
-		storageRoot: storageRoot,
-		port:        port,
+		router:           NewRouter(),
+		ipcClient:        NewIPCClient("", ""),
+		workerHost:       workerHost,
+		storageRoot:      storageRoot,
+		port:             port,
+		workerClient:     &http.Client{Timeout: 45 * time.Second},
+		globalLimiter:    NewIPRateLimiter(60, 15),
+		commandLimiter:   NewIPRateLimiter(20, 5),
+		commandSemaphore: make(chan struct{}, 10), // Concurrency constraint: 10 in-flight tasks
 	}
 }
 
@@ -65,15 +76,15 @@ func (s *OrchestratorServer) EnsureDirectories() {
 
 // FileInfoDTO represents a file in the file manager
 type FileInfoDTO struct {
-	Name      string    `json:"name"`
-	Path      string    `json:"path"`
-	RelPath   string    `json:"rel_path"`
-	Size      int64     `json:"size"`
-	ModTime   time.Time `json:"mod_time"`
-	IsDir     bool      `json:"is_dir"`
-	Category  string    `json:"category"`
-	Sha256    string    `json:"sha256,omitempty"`
-	IsLocked  bool      `json:"is_locked"`
+	Name     string    `json:"name"`
+	Path     string    `json:"path"`
+	RelPath  string    `json:"rel_path"`
+	Size     int64     `json:"size"`
+	ModTime  time.Time `json:"mod_time"`
+	IsDir    bool      `json:"is_dir"`
+	Category string    `json:"category"`
+	Sha256   string    `json:"sha256,omitempty"`
+	IsLocked bool      `json:"is_locked"`
 }
 
 func (s *OrchestratorServer) handleFSList(w http.ResponseWriter, r *http.Request) {
@@ -152,6 +163,23 @@ func (s *OrchestratorServer) handleCommand(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// Performance constraint: Max 5MB request body for command JSON
+	r.Body = http.MaxBytesReader(w, r.Body, 5*1024*1024)
+
+	// Concurrency constraint: Bounded execution semaphore
+	select {
+	case s.commandSemaphore <- struct{}{}:
+		defer func() { <-s.commandSemaphore }()
+	default:
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": 503,
+			"error":  "Server execution capacity reached. Please retry in a few moments.",
+		})
+		return
+	}
+
 	var req struct {
 		Prompt string `json:"prompt"`
 	}
@@ -166,10 +194,10 @@ func (s *OrchestratorServer) handleCommand(w http.ResponseWriter, r *http.Reques
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusForbidden)
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"status":      "security_blocked",
-			"error":       err.Error(),
-			"route":       route,
-			"blocked_at":  time.Now().Format(time.RFC3339),
+			"status":     "security_blocked",
+			"error":      err.Error(),
+			"route":      route,
+			"blocked_at": time.Now().Format(time.RFC3339),
 		})
 		return
 	}
@@ -206,12 +234,18 @@ func (s *OrchestratorServer) handleCommand(w http.ResponseWriter, r *http.Reques
 		})
 
 	case DestMemory:
-		// Perform RAG vector search
+		// Perform RAG vector search with timeout deadline
+		ctx, cancel := context.WithTimeout(r.Context(), 45*time.Second)
+		defer cancel()
+
 		ragBody, _ := json.Marshal(map[string]interface{}{
 			"query": req.Prompt,
 			"top_k": 4,
 		})
-		resp, err := http.Post(s.workerHost+"/api/memory/query", "application/json", bytes.NewReader(ragBody))
+		ragReq, _ := http.NewRequestWithContext(ctx, http.MethodPost, s.workerHost+"/api/memory/query", bytes.NewReader(ragBody))
+		ragReq.Header.Set("Content-Type", "application/json")
+
+		resp, err := s.workerClient.Do(ragReq)
 		var ragResult map[string]interface{}
 		if err == nil {
 			json.NewDecoder(resp.Body).Decode(&ragResult)
@@ -227,13 +261,18 @@ func (s *OrchestratorServer) handleCommand(w http.ResponseWriter, r *http.Reques
 		})
 
 	case DestWorker:
+		ctx, cancel := context.WithTimeout(r.Context(), 45*time.Second)
+		defer cancel()
+
 		// First retrieve RAG memory context to augment prompt
 		ragBody, _ := json.Marshal(map[string]interface{}{
 			"query": req.Prompt,
 			"top_k": 3,
 		})
 		var ragContext string
-		if ragResp, err := http.Post(s.workerHost+"/api/memory/query", "application/json", bytes.NewReader(ragBody)); err == nil {
+		ragReq, _ := http.NewRequestWithContext(ctx, http.MethodPost, s.workerHost+"/api/memory/query", bytes.NewReader(ragBody))
+		ragReq.Header.Set("Content-Type", "application/json")
+		if ragResp, err := s.workerClient.Do(ragReq); err == nil {
 			var ragMap map[string]interface{}
 			if err := json.NewDecoder(ragResp.Body).Decode(&ragMap); err == nil {
 				if results, ok := ragMap["results"].([]interface{}); ok && len(results) > 0 {
@@ -246,7 +285,9 @@ func (s *OrchestratorServer) handleCommand(w http.ResponseWriter, r *http.Reques
 		// Execute worker task
 		var result map[string]interface{}
 		if route.Action == "stage_files" {
-			resp, err := http.Post(s.workerHost+"/api/stage", "application/json", nil)
+			stageReq, _ := http.NewRequestWithContext(ctx, http.MethodPost, s.workerHost+"/api/stage", nil)
+			stageReq.Header.Set("Content-Type", "application/json")
+			resp, err := s.workerClient.Do(stageReq)
 			if err == nil {
 				json.NewDecoder(resp.Body).Decode(&result)
 				resp.Body.Close()
@@ -283,6 +324,8 @@ func (s *OrchestratorServer) handleHITLDecision(w http.ResponseWriter, r *http.R
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+	r.Body = http.MaxBytesReader(w, r.Body, 1*1024*1024)
+
 	var req struct {
 		TokenID  string `json:"token_id"`
 		Approved bool   `json:"approved"`
@@ -304,13 +347,18 @@ func (s *OrchestratorServer) handleHITLDecision(w http.ResponseWriter, r *http.R
 
 func (s *OrchestratorServer) handleSystemStatus(w http.ResponseWriter, r *http.Request) {
 	workerHealth := "offline"
-	if resp, err := http.Get(s.workerHost + "/health"); err == nil {
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	defer cancel()
+
+	probeReq, _ := http.NewRequestWithContext(ctx, http.MethodGet, s.workerHost+"/health", nil)
+	if resp, err := s.workerClient.Do(probeReq); err == nil {
 		workerHealth = "online"
 		resp.Body.Close()
 	}
 
 	daemonHealth := "offline"
-	if resp, err := http.Get("http://127.0.0.1:8081/health"); err == nil {
+	daemonReq, _ := http.NewRequestWithContext(ctx, http.MethodGet, "http://127.0.0.1:8081/health", nil)
+	if resp, err := s.workerClient.Do(daemonReq); err == nil {
 		daemonHealth = "online"
 		resp.Body.Close()
 	}
@@ -326,8 +374,13 @@ func (s *OrchestratorServer) handleSystemStatus(w http.ResponseWriter, r *http.R
 }
 
 func (s *OrchestratorServer) handlePipelineBenchmark(w http.ResponseWriter, r *http.Request) {
-	// Triggers Python worker pipeline benchmark (Test Case 3)
-	resp, err := http.Post(s.workerHost+"/api/stage", "application/json", nil)
+	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+	defer cancel()
+
+	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, s.workerHost+"/api/stage", nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := s.workerClient.Do(req)
 	var stageResult map[string]interface{}
 	if err == nil {
 		json.NewDecoder(resp.Body).Decode(&stageResult)
@@ -338,7 +391,11 @@ func (s *OrchestratorServer) handlePipelineBenchmark(w http.ResponseWriter, r *h
 }
 
 func (s *OrchestratorServer) handleBrainStatus(w http.ResponseWriter, r *http.Request) {
-	resp, err := http.Get(s.workerHost + "/api/brain/status")
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, s.workerHost+"/api/brain/status", nil)
+	resp, err := s.workerClient.Do(req)
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]interface{}{
@@ -357,7 +414,20 @@ func (s *OrchestratorServer) handleBrainStatus(w http.ResponseWriter, r *http.Re
 }
 
 func (s *OrchestratorServer) handleSTTTranscribe(w http.ResponseWriter, r *http.Request) {
-	resp, err := http.Post(s.workerHost+"/api/stt/transcribe", "application/json", r.Body)
+	// Performance constraint: Max 15MB request body for audio payload
+	r.Body = http.MaxBytesReader(w, r.Body, 15*1024*1024)
+
+	ctx, cancel := context.WithTimeout(r.Context(), 45*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.workerHost+"/api/stt/transcribe", r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := s.workerClient.Do(req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -373,24 +443,50 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	// API Endpoints
-	mux.HandleFunc("/api/fs/list", server.handleFSList)
-	mux.HandleFunc("/api/fs/read", server.handleFSRead)
-	mux.HandleFunc("/api/orchestrator/command", server.handleCommand)
-	mux.HandleFunc("/api/orchestrator/hitl/pending", server.handleHITLPending)
-	mux.HandleFunc("/api/orchestrator/hitl/decision", server.handleHITLDecision)
-	mux.HandleFunc("/api/orchestrator/benchmark", server.handlePipelineBenchmark)
+	// API Endpoints with Rate Limiting & Concurrency Constraints
+	mux.HandleFunc("/api/fs/list", RateLimitMiddleware(server.globalLimiter, server.handleFSList))
+	mux.HandleFunc("/api/fs/read", RateLimitMiddleware(server.globalLimiter, server.handleFSRead))
+	mux.HandleFunc("/api/orchestrator/command", RateLimitMiddleware(server.commandLimiter, server.handleCommand))
+	mux.HandleFunc("/api/orchestrator/hitl/pending", RateLimitMiddleware(server.globalLimiter, server.handleHITLPending))
+	mux.HandleFunc("/api/orchestrator/hitl/decision", RateLimitMiddleware(server.globalLimiter, server.handleHITLDecision))
+	mux.HandleFunc("/api/orchestrator/benchmark", RateLimitMiddleware(server.commandLimiter, server.handlePipelineBenchmark))
+	// Status probe remains unthrottled for cloud uptime monitors & Fly.io health checks
 	mux.HandleFunc("/api/system/status", server.handleSystemStatus)
-	mux.HandleFunc("/api/brain/status", server.handleBrainStatus)
-	mux.HandleFunc("/api/stt/transcribe", server.handleSTTTranscribe)
+	mux.HandleFunc("/api/brain/status", RateLimitMiddleware(server.globalLimiter, server.handleBrainStatus))
+	mux.HandleFunc("/api/stt/transcribe", RateLimitMiddleware(server.commandLimiter, server.handleSTTTranscribe))
 
 	// Static Frontend Server
 	frontendDir := filepath.Join(".", "frontend")
 	fileServer := http.FileServer(http.Dir(frontendDir))
 	mux.Handle("/", fileServer)
 
-	log.Printf("[*] Omni-Operator Orchestrator running on :%s", server.port)
-	if err := http.ListenAndServe(":"+server.port, mux); err != nil {
-		log.Fatalf("[FATAL] Orchestrator failed to start: %v", err)
+	srv := &http.Server{
+		Addr:              ":" + server.port,
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      60 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		MaxHeaderBytes:    1 << 20, // 1MB headers
 	}
+
+	// Graceful shutdown channel
+	shutdown := make(chan os.Signal, 1)
+	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		log.Printf("[*] Omni-Operator Orchestrator running on :%s", server.port)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("[FATAL] Orchestrator failed to start: %v", err)
+		}
+	}()
+
+	<-shutdown
+	log.Println("[*] Shutting down Orchestrator gracefully...")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Printf("[WARN] Server forced to shutdown: %v", err)
+	}
+	log.Println("[*] Orchestrator exited cleanly.")
 }

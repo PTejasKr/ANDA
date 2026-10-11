@@ -1,3 +1,8 @@
-flask>=2.0.0
-openpyxl>=3.0.0
-numpy>=1.20.0
+flask>=3.0.0
+openpyxl>=3.1.2
+pillow>=10.2.0
+pymupdf>=1.23.0
+numpy>=1.26.0
+requests>=2.31.0
+pytest>=8.0.0
+SpeechRecognition>=3.10.0
