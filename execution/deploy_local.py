@@ -16,27 +16,21 @@ def free_ports(ports=(8080, 50051, 8081)):
     """Terminates stale processes occupying target ports on Windows."""
     if sys.platform != "win32":
         return
-    try:
-        out = subprocess.check_output(["netstat", "-ano"], text=True)
-        pids_to_kill = set()
-        for line in out.splitlines():
-            for port in ports:
-                if f":{port} " in line and "LISTENING" in line:
-                    parts = line.strip().split()
-                    if parts:
-                        try:
-                            pid = int(parts[-1])
-                            if pid != os.getpid() and pid > 0:
-                                pids_to_kill.add(pid)
-                        except ValueError:
-                            pass
-        for pid in pids_to_kill:
-            print(f"[*] Port conflict detected. Freeing port by terminating PID {pid}...")
-            subprocess.run(["taskkill", "/F", "/PID", str(pid)], capture_output=True)
-        if pids_to_kill:
-            time.sleep(0.8)
-    except Exception as e:
-        print(f"[!] Note: Port cleanup check: {e}")
+    for port in ports:
+        try:
+            ps_cmd = f"Get-NetTCPConnection -LocalPort {port} -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique"
+            out = subprocess.check_output(["powershell", "-NoProfile", "-Command", ps_cmd], text=True).strip()
+            if out:
+                for line in out.splitlines():
+                    pid_str = line.strip()
+                    if pid_str.isdigit():
+                        pid = int(pid_str)
+                        if pid > 0 and pid != os.getpid():
+                            print(f"[*] Port {port} conflict detected. Terminating PID {pid}...")
+                            subprocess.run(["powershell", "-NoProfile", "-Command", f"Stop-Process -Id {pid} -Force -ErrorAction SilentlyContinue"])
+        except Exception as e:
+            pass
+    time.sleep(1.0)
 
 
 def ensure_binaries():
@@ -92,18 +86,19 @@ def start_stack(with_hotkey: bool = False):
 
     procs = [daemon_proc, worker_proc, orch_proc]
 
-    # Optional: Start Global Hotkey Listener
+    # Optional: Start Native Desktop HUD App
     if with_hotkey:
-        print("[+] Spawning Windows Global Hotkey Listener [Ctrl + Win]...")
-        hotkey_script = "hotkey_daemon.py" if os.path.exists("hotkey_daemon.py") else "execution/global_hotkey_listener.py"
-        hotkey_env = os.environ.copy()
-        hotkey_env["ANDA_STACK_MANAGED"] = "1"
-        hotkey_proc = subprocess.Popen([sys.executable, os.path.abspath(hotkey_script)], env=hotkey_env)
-        procs.append(hotkey_proc)
+        print("[+] Spawning ANDA Native Desktop HUD App [Left Ctrl + Win]...")
+        if os.path.exists("anda.exe"):
+            hud_proc = subprocess.Popen([os.path.abspath("anda.exe")])
+            procs.append(hud_proc)
+        elif os.path.exists("execution/anda_app.py"):
+            hud_proc = subprocess.Popen([sys.executable, os.path.abspath("execution/anda_app.py")])
+            procs.append(hud_proc)
 
     # Poll until services become responsive
     print("\n[*] Waiting for services to become responsive...")
-    max_wait = 12.0
+    max_wait = 18.0
     start_time = time.time()
     last_err = None
 
@@ -126,14 +121,19 @@ def start_stack(with_hotkey: bool = False):
                 r_sys.status_code == 200 and
                 r_worker.status_code == 200 and
                 r_daemon.status_code == 200):
-                sys_data = r_sys.json()
-                if sys_data.get("worker_plane") == "online" and sys_data.get("daemon_ipc") == "online":
-                    print(f"[+] Frontend UI Check: HTTP {r_ui.status_code} ({len(r_ui.content)} bytes)")
-                    print(f"[+] Subsystem Status Check: {sys_data}")
-                    print(f"[+] Worker Health Check: {r_worker.json()}")
-                    print(f"[+] Daemon Health Check: {r_daemon.json()}")
-                    last_err = None
-                    break
+                try:
+                    sys_data = r_sys.json()
+                    worker_data = r_worker.json()
+                    daemon_data = r_daemon.json()
+                    if sys_data.get("worker_plane") == "online" and sys_data.get("daemon_ipc") == "online":
+                        print(f"[+] Frontend Showcase Check: HTTP {r_ui.status_code} ({len(r_ui.content)} bytes)")
+                        print(f"[+] Subsystem Status Check: {sys_data}")
+                        print(f"[+] Worker Health Check: {worker_data}")
+                        print(f"[+] Daemon Health Check: {daemon_data}")
+                        last_err = None
+                        break
+                except Exception as parse_e:
+                    last_err = parse_e
         except Exception as e:
             last_err = e
 

@@ -31,25 +31,22 @@ class WindowsGlobalHotkey:
 
     def trigger_action(self):
         print("\n" + "="*60)
-        print("[!] GLOBAL HOTKEY ACTIVATED: [Ctrl + Win/Super]")
-        print("[*] Focusing Project ANDA Voice HUD & Command Deck...")
+        print("[!] GLOBAL HOTKEY ACTIVATED: [Left Ctrl + Win]")
+        print("[*] Summoning ANDA Native Floating HUD (anda.exe)...")
         print("="*60)
 
-        # 1. Open / Focus the Web HUD
+        # 1. Toggle or Launch Native HUD (No browser)
+        anda_exe = os.path.abspath("anda.exe")
+        anda_py = os.path.abspath("execution/anda_app.py")
+        DETACHED = 0x00000008 | 0x00000200
         try:
-            webbrowser.open(self.target_url)
+            import subprocess
+            if os.path.exists(anda_exe):
+                subprocess.Popen([anda_exe], creationflags=DETACHED, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=True)
+            elif os.path.exists(anda_py):
+                subprocess.Popen([sys.executable, anda_py], creationflags=DETACHED, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=True)
         except Exception as e:
-            print(f"[!] Browser launch error: {e}")
-
-        # 2. Notify Orchestrator of Hotkey Activation Event
-        try:
-            requests.post(
-                f"{self.target_url}/api/orchestrator/command",
-                json={"prompt": "stage and categorize files"},
-                timeout=1.0,
-            )
-        except Exception:
-            pass
+            print(f"[!] HUD spawn note: {e}")
 
     def run_listener(self):
         print(f"[*] Registering Global Windows Hotkey: [Ctrl + Win + Space] (ID: {HOTKEY_ID})...")

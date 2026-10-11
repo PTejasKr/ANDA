@@ -62,33 +62,26 @@ def verify_environment():
 
 
 def verify_ui_assets():
-    print("\n--- 2. UI Server & Asset Verification ---")
+    print("\n--- 2. Native Binary & Web Showcase Verification ---")
     base_dir = os.path.dirname(os.path.abspath(__file__))
     frontend_dir = os.path.join(base_dir, "frontend")
 
+    anda_exe_path = os.path.join(base_dir, "anda.exe")
+    web_exe_path = os.path.join(frontend_dir, "anda.exe")
     index_path = os.path.join(frontend_dir, "index.html")
     styles_path = os.path.join(frontend_dir, "styles.css")
     app_path = os.path.join(frontend_dir, "app.js")
 
-    log_check("frontend/index.html exists", os.path.exists(index_path), f"Size: {os.path.getsize(index_path)} bytes")
-    log_check("frontend/styles.css exists", os.path.exists(styles_path), f"Size: {os.path.getsize(styles_path)} bytes")
-    log_check("frontend/app.js exists", os.path.exists(app_path), f"Size: {os.path.getsize(app_path)} bytes")
-
-    # Verify key spec elements inside files
-    with open(index_path, "r", encoding="utf-8") as f:
-        html = f.read()
-
-    has_orb = "whisper-orb" in html
-    has_transcription = "ephemeral-container" in html
-    has_drawer = "actionDrawer" in html
-    has_loop_a = "modalAmbiguity" in html
-    has_loop_b = "modalRunaway" in html
-    has_loop_c = "modalTimeout" in html
-    has_loop_d = "modalElevation" in html
-
-    all_components = all([has_orb, has_transcription, has_drawer, has_loop_a, has_loop_b, has_loop_c, has_loop_d])
-    log_check("Spec UI Components in index.html", all_components,
-              "Orb, Transcription, Action Drawer, and all 4 Fallback Loops (A, B, C, D) verified")
+    log_check("Native Standalone Binary (anda.exe)", os.path.exists(anda_exe_path),
+              f"Size: {os.path.getsize(anda_exe_path):,} bytes" if os.path.exists(anda_exe_path) else "Missing")
+    log_check("Web Downloadable Binary (frontend/anda.exe)", os.path.exists(web_exe_path),
+              f"Size: {os.path.getsize(web_exe_path):,} bytes" if os.path.exists(web_exe_path) else "Missing")
+    log_check("Product Showcase (frontend/index.html)", os.path.exists(index_path),
+              f"Size: {os.path.getsize(index_path):,} bytes" if os.path.exists(index_path) else "Missing")
+    log_check("Showcase Styles (frontend/styles.css)", os.path.exists(styles_path),
+              f"Size: {os.path.getsize(styles_path):,} bytes" if os.path.exists(styles_path) else "Missing")
+    log_check("Showcase App (frontend/app.js)", os.path.exists(app_path),
+              f"Size: {os.path.getsize(app_path):,} bytes" if os.path.exists(app_path) else "Missing")
 
     # Test server endpoint response
     server_online = False
@@ -96,14 +89,14 @@ def verify_ui_assets():
         try:
             with urllib.request.urlopen(url, timeout=2.0) as resp:
                 content = resp.read().decode("utf-8")
-                if resp.status == 200 and "Omni-Operator" in content:
+                if resp.status == 200 and "ANDA" in content:
                     server_online = True
                     break
         except Exception:
             pass
 
     log_check("Local Web Server (:8080)", server_online,
-              "Responds with HTTP 200 OK" if server_online else "Server offline or starting")
+              "Serving product showcase with HTTP 200 OK" if server_online else "Server offline or starting")
 
 
 def verify_win32_hotkeys():

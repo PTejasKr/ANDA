@@ -210,71 +210,38 @@ def get_browser_app_cmd():
 
 
 def launch_or_toggle_ui():
-    """Toggles the transparent popup UI or launches it if not open."""
+    """Toggles or spawns ANDA Native Desktop HUD (anda.exe) with Zero Browser Overhead."""
     inp = user32.OpenInputDesktop(0, False, 0x01FF)
     if inp:
         user32.SetThreadDesktop(inp)
 
-    ensure_server_running(include_hotkey=True)
+    anda_exe = os.path.join(SCRIPT_DIR, "anda.exe")
+    anda_py = os.path.join(SCRIPT_DIR, "execution", "anda_app.py")
 
-    hwnd = find_app_window()
-    if hwnd:
-        # Window exists: check visibility
-        if user32.IsWindowVisible(hwnd):
-            foreground_hwnd = user32.GetForegroundWindow()
-            if foreground_hwnd == hwnd:
-                # Active in foreground -> toggle hide
-                print("[*] Toggling UI: Hiding active window.")
-                user32.ShowWindow(hwnd, SW_HIDE)
-                return
-            else:
-                # Visible in background -> bring to front
-                print("[*] Toggling UI: Bringing to foreground.")
-                user32.ShowWindow(hwnd, SW_RESTORE)
-                user32.SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW)
-                user32.SetForegroundWindow(hwnd)
-                return
-        else:
-            # Window was hidden -> show and bring to front
-            print("[*] Toggling UI: Unhiding window.")
-            user32.ShowWindow(hwnd, SW_RESTORE)
-            user32.SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW)
-            user32.SetForegroundWindow(hwnd)
+    # Check if anda process is running
+    cmd_check = "Get-Process -Name anda -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id"
+    try:
+        out = subprocess.check_output(["powershell", "-NoProfile", "-Command", cmd_check], text=True).strip()
+        if out:
+            # Send toggle keybd_event to trigger anda's internal listener
+            print("[*] ANDA native app is running. Triggering toggle...")
+            user32.keybd_event(0xA2, 0, 0, 0)
+            user32.keybd_event(0x5B, 0, 0, 0)
+            time.sleep(0.05)
+            user32.keybd_event(0x5B, 0, 2, 0)
+            user32.keybd_event(0xA2, 0, 2, 0)
             return
+    except Exception:
+        pass
 
-    # Window does not exist yet: launch in chromeless app mode with isolated profile
-    browser_exe = get_browser_app_cmd()
-    user_data = os.path.expandvars(r"%LocalAppData%\ANDA\hud_session")
-    if browser_exe:
-        print(f"[*] Launching popup window using {os.path.basename(browser_exe)} in app mode...")
-        cmd = [
-            browser_exe,
-            f"--user-data-dir={user_data}",
-            f"--app={APP_URL}",
-            "--window-size=740,890",
-            "--window-position=590,80",
-            "--disable-features=TranslateUI",
-            "--disable-extensions",
-        ]
-        DETACHED = 0x00000008 | 0x00000200
-        subprocess.Popen(
-            cmd,
-            creationflags=DETACHED,
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            close_fds=True,
-        )
-        time.sleep(0.8)
-        new_hwnd = find_app_window()
-        if new_hwnd:
-            user32.SetWindowPos(new_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW)
-            user32.SetForegroundWindow(new_hwnd)
-    else:
-        # Fallback to default browser
-        import webbrowser
-        print("[*] Opening UI in default browser...")
-        webbrowser.open(APP_URL)
+    # Launch native executable if not running
+    DETACHED = 0x00000008 | 0x00000200
+    if os.path.exists(anda_exe):
+        print("[*] Spawning native ANDA executable (anda.exe)...")
+        subprocess.Popen([anda_exe], creationflags=DETACHED, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=True)
+    elif os.path.exists(anda_py):
+        print("[*] Spawning native ANDA script (anda_app.py)...")
+        subprocess.Popen([sys.executable, anda_py], creationflags=DETACHED, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=True)
 
 
 def hardware_key_listener():
