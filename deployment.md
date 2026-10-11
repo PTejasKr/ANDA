@@ -1,12 +1,12 @@
-# Omni-Operator OS Agent: Complete Deployment Guide & Verification Specification
+# ANDA OS Agent: Complete Deployment Guide & Verification Specification
 
-This document provides the canonical deployment runbook, dual-plane architectural boundaries, machine learning hallucination mitigation procedures, and verified test execution reports for the Omni-Operator OS Agent repository.
+This document provides the canonical deployment runbook, dual-plane architectural boundaries, machine learning hallucination mitigation procedures, and verified test execution reports for the ANDA OS Agent repository.
 
 ---
 
 ## 1. Dual-Plane Architecture & Execution Boundaries
 
-The Omni-Operator operates under a strict dual-plane isolation model separating unprivileged data orchestration from elevated system administration:
+The ANDA operates under a strict dual-plane isolation model separating unprivileged data orchestration from elevated system administration:
 
 ```
 +-----------------------------------------------------------------------------------+
@@ -124,11 +124,11 @@ tests/test_staging_rag.py::test_multimodal_pipeline_benchmark PASSED     [100%]
 === RUN   TestIPCHITLApprovedExecution
 --- PASS: TestIPCHITLApprovedExecution (0.21s)
 PASS
-ok      omni-operator/backend/daemon
+ok      anda/backend/daemon
 === RUN   TestIntentRouting
 --- PASS: TestIntentRouting (0.00s)
 PASS
-ok      omni-operator/backend/orchestrator
+ok      anda/backend/orchestrator
 ```
 
 ---
@@ -193,7 +193,7 @@ Vercel hosts the user-facing web dashboard.
 ### Step 3: Configure Environment Variables
 In the Vercel project settings, inject the public URL of your Fly.io backend:
 ```env
-NEXT_PUBLIC_ORCHESTRATOR_URL=https://anda-omni-operator.fly.dev
+NEXT_PUBLIC_ORCHESTRATOR_URL=https://anda-anda.fly.dev
 ```
 
 ### Step 4: Deploy
@@ -216,5 +216,5 @@ On the target Windows client machine:
 4. Connect the local daemon to the cloud orchestrator using an authenticated WSS proxy:
    ```powershell
    # Point local proxy to your Fly.io instance
-   $env:REMOTE_ORCHESTRATOR="https://anda-omni-operator.fly.dev"
+   $env:REMOTE_ORCHESTRATOR="https://anda-anda.fly.dev"
    ```

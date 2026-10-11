@@ -4,7 +4,6 @@
 interface __BaseEnv_Env {
 	AI: Ai;
 	FLY_ORCHESTRATOR_URL: "https://anda-omni-operator.fly.dev";
-	ANDA_DAEMON_TOKEN: "anda_secure_edge_handshake_2026";
 	DEFAULT_AI_MODEL: "@cf/google/gemma-7b-it";
 }
 declare namespace Cloudflare {

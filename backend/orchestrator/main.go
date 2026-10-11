@@ -475,7 +475,7 @@ func main() {
 	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
-		log.Printf("[*] Omni-Operator Orchestrator running on :%s", server.port)
+		log.Printf("[*] ANDA Orchestrator running on :%s", server.port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("[FATAL] Orchestrator failed to start: %v", err)
 		}

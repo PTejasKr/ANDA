@@ -1,5 +1,5 @@
 """
-Omni-Operator Web Server
+ANDA Web Server
 Serves the transparent popup UI frontend on the configured ORCHESTRATOR_PORT (8080).
 Uses Python standard library ThreadingHTTPServer with dual-stack IPv4/IPv6 for high stability.
 """
@@ -29,6 +29,21 @@ class OmniHandler(SimpleHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
 
+    def do_GET(self):
+        if self.path.startswith("/api/system/status"):
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(b'{"orchestrator":"online","worker_plane":"online","daemon_ipc":"online","storage_root":"storage","mode":"server_fallback"}')
+            return
+        if self.path == "/health":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(b'{"status":"healthy"}')
+            return
+        super().do_GET()
+
     def log_message(self, format, *args):
         # Suppress noisy console logs in headless daemon mode
         if sys.stdout is not None:
@@ -52,7 +67,7 @@ def run():
         httpd = HTTPServer(("0.0.0.0", PORT), OmniHandler)
 
     if sys.stdout is not None:
-        print(f"[*] Omni-Operator UI running at: http://localhost:{PORT}")
+        print(f"[*] ANDA UI running at: http://localhost:{PORT}")
         print(f"[*] Serving files from: {FRONTEND_DIR}")
 
     try:

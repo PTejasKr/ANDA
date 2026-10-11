@@ -1,5 +1,6 @@
 # Binaries and executables
 *.exe
+*.exe~
 *.dll
 *.so
 /orchestrator
@@ -15,6 +16,8 @@ __pycache__/
 htmlcov/
 
 # Local configuration
+.env
+.env.*
 .env.local
 credentials.json
 token.json

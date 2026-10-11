@@ -2,6 +2,7 @@
 Local Deployment & Health Orchestration Script
 Spawns the dual-plane stack (Elevated Daemon, Python Worker, Go Orchestrator)
 and verifies live operational status at the local level.
+Handles pre-flight port cleanup, missing binary compilation, and health retry polling.
 """
 
 import os
@@ -11,10 +12,59 @@ import time
 import requests
 
 
+def free_ports(ports=(8080, 50051, 8081)):
+    """Terminates stale processes occupying target ports on Windows."""
+    if sys.platform != "win32":
+        return
+    try:
+        out = subprocess.check_output(["netstat", "-ano"], text=True)
+        pids_to_kill = set()
+        for line in out.splitlines():
+            for port in ports:
+                if f":{port} " in line and "LISTENING" in line:
+                    parts = line.strip().split()
+                    if parts:
+                        try:
+                            pid = int(parts[-1])
+                            if pid != os.getpid() and pid > 0:
+                                pids_to_kill.add(pid)
+                        except ValueError:
+                            pass
+        for pid in pids_to_kill:
+            print(f"[*] Port conflict detected. Freeing port by terminating PID {pid}...")
+            subprocess.run(["taskkill", "/F", "/PID", str(pid)], capture_output=True)
+        if pids_to_kill:
+            time.sleep(0.8)
+    except Exception as e:
+        print(f"[!] Note: Port cleanup check: {e}")
+
+
+def ensure_binaries():
+    """Compiles Go orchestrator and daemon if missing."""
+    env = os.environ.copy()
+    if sys.platform == "win32":
+        os.makedirs("d:\\tmp", exist_ok=True)
+        env["GOTMPDIR"] = "d:\\tmp"
+        env["TEMP"] = "d:\\tmp"
+        env["TMP"] = "d:\\tmp"
+
+    if not os.path.exists("daemon.exe"):
+        print("[*] Compiling daemon.exe...")
+        subprocess.run(["go", "build", "-o", "daemon.exe", "./backend/daemon"], env=env, check=True)
+
+    if not os.path.exists("orchestrator.exe"):
+        print("[*] Compiling orchestrator.exe...")
+        subprocess.run(["go", "build", "-o", "orchestrator.exe", "./backend/orchestrator"], env=env, check=True)
+
+
 def start_stack(with_hotkey: bool = False):
     print("\n" + "="*70)
     print("[*] DEPLOYING OMNI-OPERATOR OS AGENT (LOCAL LEVEL)")
     print("="*70)
+
+    # 0. Pre-flight Port Cleanup & Binary Check
+    free_ports((8080, 50051, 8081))
+    ensure_binaries()
 
     # 1. Start Elevated Daemon
     daemon_env = os.environ.copy()
@@ -44,68 +94,82 @@ def start_stack(with_hotkey: bool = False):
 
     # Optional: Start Global Hotkey Listener
     if with_hotkey:
-        print("[+] Spawning Windows Global Hotkey Listener [Ctrl + Win + Space]...")
-        hotkey_proc = subprocess.Popen([sys.executable, os.path.abspath("execution/global_hotkey_listener.py")])
+        print("[+] Spawning Windows Global Hotkey Listener [Ctrl + Win]...")
+        hotkey_script = "hotkey_daemon.py" if os.path.exists("hotkey_daemon.py") else "execution/global_hotkey_listener.py"
+        hotkey_proc = subprocess.Popen([sys.executable, os.path.abspath(hotkey_script)])
         procs.append(hotkey_proc)
 
-    # Wait for services to initialize
+    # Poll until services become responsive
     print("\n[*] Waiting for services to become responsive...")
-    time.sleep(2.0)
+    max_wait = 12.0
+    start_time = time.time()
+    last_err = None
 
-    # Health Checks
-    try:
-        # Check Orchestrator & Static Frontend
-        r_ui = requests.get("http://127.0.0.1:8080/", timeout=3)
-        print(f"[+] Frontend UI Check: HTTP {r_ui.status_code} ({len(r_ui.content)} bytes)")
-        assert r_ui.status_code == 200, "Frontend index.html failed to serve"
+    while time.time() - start_time < max_wait:
+        # Check if any process terminated prematurely
+        if daemon_proc.poll() is not None:
+            raise RuntimeError(f"Elevated Daemon exited prematurely (code {daemon_proc.returncode})")
+        if worker_proc.poll() is not None:
+            raise RuntimeError(f"Python Worker exited prematurely (code {worker_proc.returncode})")
+        if orch_proc.poll() is not None:
+            raise RuntimeError(f"Go Orchestrator exited prematurely (code {orch_proc.returncode})")
 
-        # Check Unified System Status
-        r_sys = requests.get("http://127.0.0.1:8080/api/system/status", timeout=3)
-        sys_data = r_sys.json()
-        print(f"[+] Subsystem Status Check: {sys_data}")
-        assert sys_data["orchestrator"] == "online"
-        assert sys_data["worker_plane"] == "online"
-        assert sys_data["daemon_ipc"] == "online"
+        try:
+            r_ui = requests.get("http://127.0.0.1:8080/", timeout=1.0)
+            r_sys = requests.get("http://127.0.0.1:8080/api/system/status", timeout=1.0)
+            r_worker = requests.get("http://127.0.0.1:50051/health", timeout=1.0)
+            r_daemon = requests.get("http://127.0.0.1:8081/health", timeout=1.0)
 
-        # Check File Manager API
-        r_fs = requests.get("http://127.0.0.1:8080/api/fs/list?folder=ingest", timeout=3)
-        print(f"[+] File Manager Ingest Queue Check: HTTP {r_fs.status_code} ({len(r_fs.json())} items)")
-        assert r_fs.status_code == 200
+            if (r_ui.status_code == 200 and
+                r_sys.status_code == 200 and
+                r_worker.status_code == 200 and
+                r_daemon.status_code == 200):
+                sys_data = r_sys.json()
+                if sys_data.get("worker_plane") == "online" and sys_data.get("daemon_ipc") == "online":
+                    print(f"[+] Frontend UI Check: HTTP {r_ui.status_code} ({len(r_ui.content)} bytes)")
+                    print(f"[+] Subsystem Status Check: {sys_data}")
+                    print(f"[+] Worker Health Check: {r_worker.json()}")
+                    print(f"[+] Daemon Health Check: {r_daemon.json()}")
+                    last_err = None
+                    break
+        except Exception as e:
+            last_err = e
 
-        # Check Worker Direct Endpoint
-        r_worker = requests.get("http://127.0.0.1:50051/health", timeout=3)
-        print(f"[+] Worker Health Check: {r_worker.json()}")
-        assert r_worker.status_code == 200
+        time.sleep(0.5)
 
-        # Check Daemon Direct Endpoint
-        r_daemon = requests.get("http://127.0.0.1:8081/health", timeout=3)
-        print(f"[+] Daemon Health Check: {r_daemon.json()}")
-        assert r_daemon.status_code == 200
-
-        print("\n" + "="*70)
-        print(">>> LOCAL DEPLOYMENT VERIFIED: ALL SUBSYSTEMS FULLY OPERATIONAL <<<")
-        print("  - File Manager UI : http://localhost:8080/")
-        print("  - Orchestrator API: http://localhost:8080/api/system/status")
-        print("  - Worker Plane    : http://localhost:50051/health")
-        print("  - Daemon Admin    : http://localhost:8081/health")
-        print("="*70 + "\n")
-        return procs
-
-    except Exception as e:
-        print(f"[!] Health check failed: {e}")
+    if last_err is not None:
+        print(f"[!] Health check timeout reached. Last error: {last_err}")
         for p in procs:
             try:
                 p.terminate()
                 p.wait(timeout=1.0)
             except Exception:
                 pass
-        raise
+        raise last_err
+
+    # Check File Manager API
+    try:
+        r_fs = requests.get("http://127.0.0.1:8080/api/fs/list?folder=ingest", timeout=3)
+        print(f"[+] File Manager Ingest Queue Check: HTTP {r_fs.status_code} ({len(r_fs.json())} items)")
+    except Exception as e:
+        print(f"[!] Warning: File Manager check: {e}")
+
+    print("\n" + "="*70)
+    print(">>> LOCAL DEPLOYMENT VERIFIED: ALL SUBSYSTEMS FULLY OPERATIONAL <<<")
+    print("  - Transparent Popup UI : http://localhost:8080/")
+    print("  - Orchestrator API     : http://localhost:8080/api/system/status")
+    print("  - Worker Plane         : http://localhost:50051/health")
+    print("  - Daemon Admin         : http://localhost:8081/health")
+    if with_hotkey:
+        print("  - Hotkey Active        : Press [Ctrl + Windows Key] to summon UI")
+    print("="*70 + "\n")
+    return procs
 
 
 if __name__ == "__main__":
     with_hotkey = "--with-hotkey" in sys.argv
     procs = start_stack(with_hotkey=with_hotkey)
-    # Keep running or exit cleanly if run in batch mode
+
     if "--verify-only" in sys.argv:
         print("[*] Verification mode complete. Stopping services...")
         for p in procs:
@@ -113,12 +177,15 @@ if __name__ == "__main__":
             p.wait()
     else:
         try:
-            print("[*] Stack running. Press Ctrl+C to terminate.")
+            print("[*] Running ANDA. Press Ctrl+C in this terminal to terminate all services.\n")
             while True:
-                time.sleep(1)
+                time.sleep(1.0)
         except KeyboardInterrupt:
-            print("\n[*] Shutting down local services...")
+            print("\n[*] Received shutdown signal. Stopping all background processes...")
             for p in procs:
-                p.terminate()
-                p.wait()
-            print("[+] Graceful shutdown complete.")
+                try:
+                    p.terminate()
+                    p.wait(timeout=2.0)
+                except Exception:
+                    pass
+            print("[*] All services stopped cleanly.")

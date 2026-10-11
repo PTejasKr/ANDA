@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Omni-Operator One-Click Installer for Windows Laptops.
+    ANDA One-Click Installer for Windows Laptops.
     Configures the transparent popup UI, background hotkey daemon, and auto-start.
     Enables toggle via [Ctrl + Windows Key].
 
@@ -63,25 +63,25 @@ $shortcut = $wshShell.CreateShortcut($startupLnkPath)
 $shortcut.TargetPath = $pythonwPath
 $shortcut.Arguments = "`"$daemonScript`""
 $shortcut.WorkingDirectory = $scriptDir
-$shortcut.Description = "Omni-Operator Global Hotkey Daemon (Ctrl+Win)"
+$shortcut.Description = "ANDA Global Hotkey Daemon (Ctrl+Win)"
 $shortcut.WindowStyle = 7 # Minimized/Hidden
 $shortcut.Save()
 Write-Host "      -> Configured Auto-Start: $startupLnkPath" -ForegroundColor Green
 
 # B. Desktop Quick-Launch Shortcut (Toggle UI)
 $desktopFolder = [System.Environment]::GetFolderPath("Desktop")
-$desktopLnkPath = Join-Path $desktopFolder "Omni-Operator (Ctrl+Win).lnk"
+$desktopLnkPath = Join-Path $desktopFolder "ANDA (Ctrl+Win).lnk"
 
 $desktopShortcut = $wshShell.CreateShortcut($desktopLnkPath)
 $desktopShortcut.TargetPath = $pythonwPath
 $desktopShortcut.Arguments = "`"$daemonScript`" --toggle"
 $desktopShortcut.WorkingDirectory = $scriptDir
-$desktopShortcut.Description = "Omni-Operator Transparent Popup UI"
+$desktopShortcut.Description = "ANDA Transparent Popup UI"
 $desktopShortcut.Save()
 Write-Host "      -> Created Desktop Shortcut: $desktopLnkPath" -ForegroundColor Green
 
 # 4. Start Background Services Immediately
-Write-Host "[4/5] Launching Omni-Operator Hotkey Daemon in Background..." -ForegroundColor Yellow
+Write-Host "[4/5] Launching ANDA Hotkey Daemon in Background..." -ForegroundColor Yellow
 
 # Kill any existing stale instances
 Get-CimInstance Win32_Process -Filter "Name LIKE 'python%'" -ErrorAction SilentlyContinue | Where-Object {

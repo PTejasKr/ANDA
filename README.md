@@ -1,4 +1,4 @@
-# Omni-Operator OS Agent
+# ANDA OS Agent
 
 > A multi-agent operating system assistant built with a **Dual-Plane Architecture** strictly separating unprivileged user-level data orchestration (multimodal ingestion, directory staging, Excel synthesis, chunked RAG vector memory) from elevated administrative OS operations (USB flashing, firmware upgrades, malware quarantine).
 

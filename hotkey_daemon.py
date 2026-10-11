@@ -1,5 +1,5 @@
 """
-Omni-Operator: Windows Global Hotkey & Desktop Overlay Daemon
+ANDA: Windows Global Hotkey & Desktop Overlay Daemon
 Registers Ctrl + Windows Key (and Win + Ctrl) to toggle the transparent popup UI.
 Pure standard library: uses ctypes Win32 API.
 """
@@ -43,7 +43,7 @@ user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32
 
 APP_URL = "http://localhost:8080"
-APP_TITLE = "Omni-Operator | Minimal Whisper Flow"
+APP_TITLE = "ANDA | Minimal Whisper Flow"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SERVER_SCRIPT = os.path.join(SCRIPT_DIR, "server.py")
 
@@ -61,7 +61,7 @@ def is_server_running():
 
 def ensure_server_running():
     if not is_server_running():
-        print("[*] Starting Omni-Operator web server in background...")
+        print("[*] Starting ANDA web server in background...")
         DETACHED = 0x00000008 | 0x00000200 # DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
         subprocess.Popen(
             [sys.executable, SERVER_SCRIPT],
@@ -83,7 +83,7 @@ def ensure_server_running():
 
 
 def find_app_window():
-    """Finds existing Edge/Chrome app window hosting Omni-Operator."""
+    """Finds existing Edge/Chrome app window hosting ANDA."""
     found_hwnd = [None]
 
     def enum_windows_callback(hwnd, lParam):
@@ -94,7 +94,7 @@ def find_app_window():
             buff = ctypes.create_unicode_buffer(length + 1)
             user32.GetWindowTextW(hwnd, buff, length + 1)
             title = buff.value
-            if "Omni-Operator" in title or "Minimal Whisper Flow" in title:
+            if "ANDA" in title or "Minimal Whisper Flow" in title:
                 found_hwnd[0] = hwnd
                 return False  # Stop enumeration
         return True
@@ -187,7 +187,7 @@ def launch_or_toggle_ui():
 
 def run_daemon():
     print("=" * 65)
-    print(" Omni-Operator | Windows Hotkey Daemon")
+    print(" ANDA | Windows Hotkey Daemon")
     print(" Press Ctrl + Windows Key to toggle the transparent popup UI")
     print("=" * 65)
 
