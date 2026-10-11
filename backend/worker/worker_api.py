@@ -15,6 +15,8 @@ from data_extractor import DataExtractor
 from file_stager import FileStager
 from vector_memory import VectorMemory
 from security_scanner import SecurityScanner
+from llm_brain import LLMBrain
+from stt_service import STTService
 from ml_validator import (
     GoldenDatasetVerifier,
     RAGGroundingValidator,
@@ -47,6 +49,8 @@ rag_validator = RAGGroundingValidator()
 ipc_decoder = ConstrainedIPCDecoder()
 visual_verifier = VisualSemanticConsistencyVerifier()
 confidence_evaluator = TokenConfidenceThreshold()
+brain = LLMBrain()
+stt = STTService()
 
 
 @app.route("/health", methods=["GET"])
@@ -55,6 +59,7 @@ def health():
         "status": "healthy",
         "plane": "unprivileged_worker",
         "documents_in_memory": len(memory.documents),
+        "brain": brain.get_brain_status()["active_provider"],
     })
 
 
@@ -207,6 +212,31 @@ def check_confidence():
     threshold = float(data.get("threshold", 0.90))
     is_log_prob = bool(data.get("is_log_prob", False))
     res = confidence_evaluator.evaluate_confidence(confidences, threshold, is_log_prob)
+    return jsonify(res)
+
+
+@app.route("/api/brain/status", methods=["GET"])
+def brain_status():
+    return jsonify(brain.get_brain_status())
+
+
+@app.route("/api/brain/parse", methods=["POST"])
+def brain_parse():
+    data = request.get_json(force=True)
+    prompt = data.get("prompt", "")
+    rag_context = data.get("rag_context", "")
+    res = brain.parse_intent_and_execute(prompt, rag_context=rag_context)
+    return jsonify(res)
+
+
+@app.route("/api/stt/transcribe", methods=["POST"])
+def stt_transcribe():
+    data = request.get_json(force=True)
+    audio_b64 = data.get("audio_b64", "")
+    format_hint = data.get("format", "wav")
+    if not audio_b64:
+        return jsonify({"error": "No audio_b64 payload received", "success": False}), 400
+    res = stt.transcribe_base64(audio_b64, format_hint=format_hint)
     return jsonify(res)
 
 
