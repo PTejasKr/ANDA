@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -336,6 +337,36 @@ func (s *OrchestratorServer) handlePipelineBenchmark(w http.ResponseWriter, r *h
 	json.NewEncoder(w).Encode(stageResult)
 }
 
+func (s *OrchestratorServer) handleBrainStatus(w http.ResponseWriter, r *http.Request) {
+	resp, err := http.Get(s.workerHost + "/api/brain/status")
+	w.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"active_provider": "deterministic_semantic_router",
+			"lm_studio":       map[string]interface{}{"available": false},
+			"docker_ollama":   map[string]interface{}{"available": false},
+			"cloudflare_workers_ai": map[string]interface{}{
+				"model":     "@cf/google/gemma-7b-it",
+				"free_tier": true,
+			},
+		})
+		return
+	}
+	defer resp.Body.Close()
+	io.Copy(w, resp.Body)
+}
+
+func (s *OrchestratorServer) handleSTTTranscribe(w http.ResponseWriter, r *http.Request) {
+	resp, err := http.Post(s.workerHost+"/api/stt/transcribe", "application/json", r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+	w.Header().Set("Content-Type", "application/json")
+	io.Copy(w, resp.Body)
+}
+
 func main() {
 	server := NewOrchestratorServer()
 	server.EnsureDirectories()
@@ -350,6 +381,8 @@ func main() {
 	mux.HandleFunc("/api/orchestrator/hitl/decision", server.handleHITLDecision)
 	mux.HandleFunc("/api/orchestrator/benchmark", server.handlePipelineBenchmark)
 	mux.HandleFunc("/api/system/status", server.handleSystemStatus)
+	mux.HandleFunc("/api/brain/status", server.handleBrainStatus)
+	mux.HandleFunc("/api/stt/transcribe", server.handleSTTTranscribe)
 
 	// Static Frontend Server
 	frontendDir := filepath.Join(".", "frontend")

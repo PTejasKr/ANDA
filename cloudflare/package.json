@@ -1,0 +1,13 @@
+{
+  "name": "anda-edge-worker",
+  "version": "1.0.0",
+  "description": "Project ANDA Edge Proxy & Free-Tier Gemma AI on Cloudflare Workers",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^3.50.0"
+  }
+}

@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -44,7 +45,7 @@ func startTestDaemon(pipeName string, timeoutSec int) (*DaemonService, func(), e
 
 // Test Case 1: Unauthorized Elevation - Reject raw shell commands
 func TestIPCUnauthorizedElevation(t *testing.T) {
-	pipeName := `\\.\pipe\omni_test_pipe_unauth`
+	pipeName := fmt.Sprintf(`\\.\pipe\omni_test_pipe_unauth_%d`, time.Now().UnixNano())
 	_, cleanup, err := startTestDaemon(pipeName, 5)
 	if err != nil {
 		t.Fatalf("failed to start test daemon: %v", err)
@@ -86,7 +87,7 @@ func TestIPCUnauthorizedElevation(t *testing.T) {
 
 // Test Case 2: Human-in-the-Loop Validation - Timeout Fails Safely
 func TestIPCHITLTimeoutSafeFail(t *testing.T) {
-	pipeName := `\\.\pipe\omni_test_pipe_timeout`
+	pipeName := fmt.Sprintf(`\\.\pipe\omni_test_pipe_timeout_%d`, time.Now().UnixNano())
 	// Fast 1 second timeout for test speed
 	_, cleanup, err := startTestDaemon(pipeName, 1)
 	if err != nil {
@@ -137,7 +138,7 @@ func TestIPCHITLTimeoutSafeFail(t *testing.T) {
 
 // Test Case 2 (Approved): Human-in-the-Loop Validation - User Confirmation Signal
 func TestIPCHITLApprovedExecution(t *testing.T) {
-	pipeName := `\\.\pipe\omni_test_pipe_approve`
+	pipeName := fmt.Sprintf(`\\.\pipe\omni_test_pipe_approve_%d`, time.Now().UnixNano())
 	daemon, cleanup, err := startTestDaemon(pipeName, 5)
 	if err != nil {
 		t.Fatalf("failed to start test daemon: %v", err)

@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # 1. Local Gemma Brain via Docker
+  anda-gemma-brain:
+    image: ollama/ollama:latest
+    container_name: anda-gemma-brain
+    ports:
+      - "11434:11434"
+    volumes:
+      - gemma_model_storage:/root/.ollama
+    restart: unless-stopped
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+    # Pulls and serves Gemma 2/3 on startup
+    entrypoint: ["/bin/sh", "-c", "ollama serve & sleep 3 && ollama pull gemma2:2b && wait"]
+
+  # 2. Local Shared Vector Memory (Qdrant)
+  anda-qdrant-memory:
+    image: qdrant/qdrant:latest
+    container_name: anda-qdrant-memory
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    restart: unless-stopped
+
+  # 3. Project ANDA Cloud / Local Stack (Orchestrator + Python Worker)
+  anda-orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: anda-orchestrator
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    environment:
+      - ORCHESTRATOR_PORT=8080
+      - WORKER_PORT=50051
+      - WORKER_HOST=http://localhost:50051
+      - STORAGE_ROOT=/app/storage
+      - OLLAMA_URL=http://anda-gemma-brain:11434
+      - LM_STUDIO_URL=http://host.docker.internal:1234/v1
+      - ENV=production
+    volumes:
+      - anda_storage:/app/storage
+    depends_on:
+      - anda-gemma-brain
+      - anda-qdrant-memory
+    restart: unless-stopped
+
+volumes:
+  gemma_model_storage:
+  qdrant_storage:
+  anda_storage:

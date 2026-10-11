@@ -476,6 +476,23 @@
         }
       });
 
+      // Global Shortcut Listener: [Ctrl + Win/Meta] or [Ctrl + Space]
+      window.addEventListener('keydown', (e) => {
+        const isCtrlWin = (e.ctrlKey && (e.metaKey || e.key === 'Meta' || e.key === 'OS'));
+        const isCtrlSpace = (e.ctrlKey && (e.code === 'Space' || e.key === ' '));
+        
+        if (isCtrlWin || isCtrlSpace) {
+          e.preventDefault();
+          this.logEvent('system', 'Shortcut [Ctrl + Win/Super] triggered! Activating voice ingestion.');
+          if (this.currentState === States.LISTENING) {
+            this.stopListening();
+          } else {
+            this.startListening();
+            this.dom.promptInput.focus();
+          }
+        }
+      });
+
       // Drawer Toggles
       this.dom.btnToggleDrawer.addEventListener('click', () => this.toggleDrawer());
       this.dom.btnCloseDrawer.addEventListener('click', () => this.toggleDrawer(false));
@@ -1182,6 +1199,17 @@
           dChip.className = 'status-chip offline';
           dChip.querySelector('.chip-label').textContent = 'Daemon: Standby';
         }
+
+        // Brain Status Badge (LM Studio / Docker / Cloudflare / Gemini)
+        try {
+          const brainRes = await fetch(`${CONFIG.WORKER_URL}/api/brain/status`).then(r => r.json());
+          const bLabel = document.getElementById('chipBrainLabel');
+          const bChip = document.getElementById('chipBrain');
+          if (bLabel && brainRes) {
+            bLabel.textContent = `Brain: ${brainRes.active_provider}`;
+            if (bChip) bChip.className = 'status-chip online';
+          }
+        } catch (_) {}
       };
 
       poll();
