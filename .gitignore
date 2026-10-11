@@ -1,0 +1,40 @@
+# Binaries and executables
+*.exe
+*.dll
+*.so
+/orchestrator
+/backend/orchestrator/orchestrator
+
+# Python bytecode & caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Local configuration
+.env.local
+credentials.json
+token.json
+
+# Temporary files and data storage
+.tmp/
+storage/ingest/*
+!storage/ingest/.gitkeep
+storage/staging/*
+!storage/staging/.gitkeep
+storage/quarantine/locked/*
+!storage/quarantine/locked/.gitkeep
+storage/quarantine/sandbox/*
+!storage/quarantine/sandbox/.gitkeep
+storage/memory_store/*
+!storage/memory_store/.gitkeep
+
+# OS and Editor metadata
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/

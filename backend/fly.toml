@@ -1,0 +1,38 @@
+# fly.toml app configuration file for Omni-Operator (Backend Directory)
+
+app = "anda-omni-operator"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  ORCHESTRATOR_PORT = "8080"
+  WORKER_PORT = "50051"
+  STORAGE_ROOT = "/app/storage"
+  HITL_TIMEOUT_SECONDS = "60"
+  VECTOR_DIM = "64"
+  ENV = "production"
+
+[mounts]
+  source = "omni_vector_data"
+  destination = "/app/storage"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "15s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/api/system/status"
+
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1
