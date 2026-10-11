@@ -4,7 +4,7 @@
 **Status:** Production Ready  
 **Date:** October 11, 2026  
 **Repository:** [https://github.com/PTejasKr/ANDA.git](https://github.com/PTejasKr/ANDA.git)  
-**Cloud Deployment:** [https://anda-anda.fly.dev](https://anda-anda.fly.dev)  
+**Cloud Deployment:** [https://anda-omni-operator.fly.dev](https://anda-omni-operator.fly.dev)  
 
 ---
 
@@ -60,6 +60,6 @@ This production release establishes cryptographic isolation between unprivileged
 
 ## Verification Endpoints
 
-* **System Status:** `GET https://anda-anda.fly.dev/api/system/status`
-* **Brain Provider Status:** `GET https://anda-anda.fly.dev/api/brain/status`
-* **File System Ingest List:** `GET https://anda-anda.fly.dev/api/fs/list?folder=ingest`
+* **System Status:** `GET https://anda-omni-operator.fly.dev/api/system/status`
+* **Brain Provider Status:** `GET https://anda-omni-operator.fly.dev/api/brain/status`
+* **File System Ingest List:** `GET https://anda-omni-operator.fly.dev/api/fs/list?folder=ingest`
