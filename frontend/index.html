@@ -170,7 +170,7 @@
     </div>
 
     <!-- Loop B: Runaway Limiter (Loop Halting) Modal (Spec Section 3.B) -->
-    <div class="fallback-overlay" id="modalRunaway" role="dialog" aria-modal="true" hidden>
+    <div class="fallback-overlay" id="modalRunaway" style="display: none !important;" role="dialog" aria-modal="true" hidden>
       <div class="fallback-card glass-modal border-orange">
         <div class="modal-badge badge-orange">THE RUNAWAY LIMITER (LOOP HALTING)</div>
         <h3 class="modal-title">Autonomous Action Paused</h3>
@@ -190,7 +190,7 @@
     </div>
 
     <!-- Loop C: Execution Timeout Fallback Modal (Spec Section 3.C) -->
-    <div class="fallback-overlay" id="modalTimeout" role="dialog" aria-modal="true" hidden>
+    <div class="fallback-overlay" id="modalTimeout" style="display: none !important;" role="dialog" aria-modal="true" hidden>
       <div class="fallback-card glass-modal border-amber">
         <div class="modal-badge badge-amber">EXECUTION TIMEOUT FALLBACK (&gt; 45s)</div>
         <h3 class="modal-title">Long-Running Process</h3>
@@ -210,7 +210,7 @@
     </div>
 
     <!-- Loop D: Security & Elevation Fallback Modal (Spec Section 3.D - Hard HITL Gate) -->
-    <div class="fallback-overlay overlay-blocking" id="modalElevation" role="dialog" aria-modal="true" hidden>
+    <div class="fallback-overlay overlay-blocking" id="modalElevation" style="display: none !important;" role="dialog" aria-modal="true" hidden>
       <div class="fallback-card glass-modal border-red modal-elevation-glow">
         <div class="modal-badge badge-red">
           <span class="pulse-dot"></span> SECURITY &amp; ELEVATION BOUNDARY (HARD HITL GATE)

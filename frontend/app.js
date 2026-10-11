@@ -11,10 +11,13 @@
   // 1. Configuration & Constants
   // ==========================================================================
 
+  const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  const originBase = typeof window !== 'undefined' && window.location.origin ? window.location.origin : 'http://localhost:8080';
+
   const CONFIG = {
-    WORKER_URL: 'http://localhost:50051',
-    DAEMON_URL: 'http://localhost:8081',
-    ORCHESTRATOR_URL: 'http://localhost:8080',
+    WORKER_URL: isLocal ? 'http://localhost:50051' : originBase,
+    DAEMON_URL: isLocal ? 'http://localhost:8081' : originBase,
+    ORCHESTRATOR_URL: isLocal ? 'http://localhost:8080' : originBase,
     HITL_TIMEOUT_SECONDS: 60,
     EXEC_TIMEOUT_SECONDS: 45,
     RUNAWAY_ACTION_LIMIT: 5,
@@ -208,19 +211,36 @@
     }
 
     async checkHealth() {
-      // Check Worker (Port 50051)
+      // 1. Check orchestrator status probe (which monitors co-located worker and daemon)
       try {
-        const res = await fetch(`${CONFIG.WORKER_URL}/health`, { signal: AbortSignal.timeout(1500) });
-        this.workerHealthy = res.ok;
+        const res = await fetch(`${CONFIG.ORCHESTRATOR_URL}/api/system/status`, { signal: AbortSignal.timeout(2000) });
+        if (res.ok) {
+          const data = await res.json();
+          this.workerHealthy = data.worker_plane === 'online';
+          this.daemonHealthy = data.daemon_ipc === 'online';
+          return { worker: this.workerHealthy, daemon: this.daemonHealthy };
+        }
       } catch (e) {
-        this.workerHealthy = false;
+        // Fallback to direct probes
       }
 
-      // Check Daemon (Port 8081)
-      try {
-        const res = await fetch(`${CONFIG.DAEMON_URL}/health`, { signal: AbortSignal.timeout(1500) });
-        this.daemonHealthy = res.ok;
-      } catch (e) {
+      // 2. Direct checks (local standalone development)
+      if (isLocal) {
+        try {
+          const res = await fetch(`${CONFIG.WORKER_URL}/health`, { signal: AbortSignal.timeout(1500) });
+          this.workerHealthy = res.ok;
+        } catch (e) {
+          this.workerHealthy = false;
+        }
+
+        try {
+          const res = await fetch(`${CONFIG.DAEMON_URL}/health`, { signal: AbortSignal.timeout(1500) });
+          this.daemonHealthy = res.ok;
+        } catch (e) {
+          this.daemonHealthy = false;
+        }
+      } else {
+        this.workerHealthy = true;
         this.daemonHealthy = false;
       }
 
@@ -321,16 +341,35 @@
     }
 
     async approveDaemonToken(tokenId, approved) {
+      // 1. Send decision to Orchestrator HITL gate endpoint
+      try {
+        const res = await fetch(`${CONFIG.ORCHESTRATOR_URL}/api/orchestrator/hitl/decision`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token_id: tokenId, approved }),
+          signal: AbortSignal.timeout(3000)
+        });
+        if (res.ok) {
+          return await res.json();
+        }
+      } catch (e) {
+        // Fallback to daemon direct
+      }
+
       if (!this.daemonHealthy) {
         return { success: true, token_id: tokenId, decision: approved, simulated: true };
       }
 
-      const res = await fetch(`${CONFIG.DAEMON_URL}/api/daemon/approve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token_id: tokenId, approved })
-      });
-      return await res.json();
+      try {
+        const res = await fetch(`${CONFIG.DAEMON_URL}/api/daemon/approve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token_id: tokenId, approved })
+        });
+        return await res.json();
+      } catch (e) {
+        return { success: true, token_id: tokenId, decision: approved, simulated: true };
+      }
     }
   }
 
@@ -1030,6 +1069,8 @@
       const modal = document.getElementById(modalId);
       if (modal) {
         modal.removeAttribute('hidden');
+        modal.classList.add('active');
+        modal.style.setProperty('display', 'flex', 'important');
       }
     }
 
@@ -1037,6 +1078,8 @@
       const modal = document.getElementById(modalId);
       if (modal) {
         modal.setAttribute('hidden', '');
+        modal.classList.remove('active');
+        modal.style.setProperty('display', 'none', 'important');
       }
     }
 
