@@ -157,8 +157,8 @@ def verify_shortcuts():
     startup_dir = os.path.expandvars(r"%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup")
     desktop_dir = os.path.expandvars(r"%USERPROFILE%\Desktop")
 
-    startup_lnk = os.path.join(startup_dir, "OmniOperator.lnk")
-    desktop_lnk = os.path.join(desktop_dir, "Omni-Operator (Ctrl+Win).lnk")
+    startup_lnk = os.path.join(startup_dir, "ANDA.lnk") if os.path.exists(os.path.join(startup_dir, "ANDA.lnk")) else os.path.join(startup_dir, "OmniOperator.lnk")
+    desktop_lnk = os.path.join(desktop_dir, "ANDA.lnk") if os.path.exists(os.path.join(desktop_dir, "ANDA.lnk")) else os.path.join(desktop_dir, "Omni-Operator (Ctrl+Win).lnk")
 
     log_check("Windows Startup Folder Shortcut", os.path.exists(startup_lnk), startup_lnk)
     log_check("Desktop Quick-Launch Shortcut", os.path.exists(desktop_lnk), desktop_lnk)
@@ -166,7 +166,7 @@ def verify_shortcuts():
 
 def main():
     print("=" * 65)
-    print(" Omni-Operator | One-Click Installation & Hotkey Verifier")
+    print(" ANDA | One-Click Installation & Hotkey Verifier")
     print("=" * 65)
 
     verify_environment()

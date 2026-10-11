@@ -43,26 +43,71 @@ SWP_SHOWWINDOW = 0x0040
 user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32
 
-APP_URL = "http://localhost:8080"
+APP_URL = "http://localhost:8080/index.html"
+INSTALL_URL = "http://localhost:8080/install.html"
+STATUS_URL = "http://localhost:8080/api/system/status"
 APP_TITLE = "ANDA | Minimal Whisper Flow"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SERVER_SCRIPT = os.path.join(SCRIPT_DIR, "server.py")
+DEPLOY_SCRIPT = os.path.join(SCRIPT_DIR, "execution", "deploy_local.py")
 
 
-def is_server_running():
-    for url in [f"{APP_URL}/", "http://127.0.0.1:8080/"]:
+def is_full_stack_running():
+    for url in [STATUS_URL, "http://127.0.0.1:8080/api/system/status"]:
         try:
             with urllib.request.urlopen(url, timeout=1.0) as resp:
-                if resp.status == 200:
+                if resp.status != 200:
+                    continue
+                import json
+                data = json.loads(resp.read().decode("utf-8"))
+                if data.get("orchestrator") == "online" and data.get("worker_plane") == "online" and data.get("daemon_ipc") == "online":
                     return True
         except Exception:
             pass
     return False
 
 
-def ensure_server_running():
-    if not is_server_running():
-        print("[*] Starting ANDA web server in background...")
+def start_full_stack(include_hotkey=False):
+    args = [sys.executable, DEPLOY_SCRIPT]
+    if include_hotkey:
+        args.append("--with-hotkey")
+    print("[*] Starting ANDA full local stack in background...")
+    DETACHED = 0x00000008 | 0x00000200 # DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
+    subprocess.Popen(
+        args,
+        cwd=SCRIPT_DIR,
+        creationflags=DETACHED,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        close_fds=True,
+    )
+
+
+def ensure_server_running(include_hotkey=False):
+    if is_full_stack_running():
+        return True
+
+    if os.environ.get("ANDA_STACK_MANAGED") == "1":
+        print("[*] Waiting for managed ANDA stack to become responsive...")
+        for _ in range(40):
+            time.sleep(0.25)
+            if is_full_stack_running():
+                print("[*] Managed ANDA stack is active.")
+                return True
+        print("[!] Warning: managed stack is not fully responsive yet.")
+        return False
+
+    if os.path.exists(DEPLOY_SCRIPT):
+        start_full_stack(include_hotkey=include_hotkey)
+        for _ in range(50):
+            time.sleep(0.25)
+            if is_full_stack_running():
+                print("[*] Full ANDA stack is active and responding.")
+                return True
+
+    if not is_full_stack_running():
+        print("[*] Starting fallback ANDA web server in background...")
         DETACHED = 0x00000008 | 0x00000200 # DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
         subprocess.Popen(
             [sys.executable, SERVER_SCRIPT],
@@ -75,16 +120,41 @@ def ensure_server_running():
         )
         for _ in range(25):
             time.sleep(0.2)
-            if is_server_running():
-                print("[*] Web server is active and responding.")
-                return True
-        print("[!] Warning: Web server started but not responding yet.")
+            try:
+                with urllib.request.urlopen(APP_URL, timeout=1.0) as resp:
+                    if resp.status == 200:
+                        print("[*] Fallback web server is active and responding.")
+                        return True
+            except Exception:
+                pass
+        print("[!] Warning: web server started but not fully responding yet.")
         return False
     return True
 
 
+def open_install_page():
+    ensure_server_running(include_hotkey=True)
+    browser_exe = get_browser_app_cmd()
+    if browser_exe:
+        DETACHED = 0x00000008 | 0x00000200
+        subprocess.Popen(
+            [browser_exe, f"--app={INSTALL_URL}", "--window-size=1180,860"],
+            creationflags=DETACHED,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            close_fds=True,
+        )
+    else:
+        import webbrowser
+        webbrowser.open(INSTALL_URL)
+
+
 def find_app_window():
-    """Finds existing Edge/Chrome app window hosting ANDA."""
+    """Finds existing Edge/Chrome/Brave app window hosting ANDA."""
+    inp = user32.OpenInputDesktop(0, False, 0x01FF)
+    if inp:
+        user32.SetThreadDesktop(inp)
     found_hwnd = [None]
 
     def enum_windows_callback(hwnd, lParam):
@@ -95,9 +165,10 @@ def find_app_window():
             buff = ctypes.create_unicode_buffer(length + 1)
             user32.GetWindowTextW(hwnd, buff, length + 1)
             title = buff.value
-            if "ANDA" in title or "Minimal Whisper Flow" in title:
-                found_hwnd[0] = hwnd
-                return False  # Stop enumeration
+            if any(k in title for k in ["ANDA", "Autonomous Native", "Minimal Whisper Flow", "Omni-Operator"]):
+                if not any(k in title.lower() for k in ["visual studio", "antigravity", "powershell", "cmd.exe"]):
+                    found_hwnd[0] = hwnd
+                    return False  # Stop enumeration
         return True
 
     WNDENUMPROC = ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)
@@ -107,7 +178,16 @@ def find_app_window():
 
 
 def get_browser_app_cmd():
-    """Finds msedge or chrome to launch in app mode."""
+    """Finds brave, msedge or chrome to launch in app mode."""
+    brave_paths = [
+        os.path.expandvars(r"%LocalAppData%\BraveSoftware\Brave-Browser\Application\brave.exe"),
+        os.path.expandvars(r"%ProgramFiles%\BraveSoftware\Brave-Browser\Application\brave.exe"),
+        os.path.expandvars(r"%ProgramFiles(x86)%\BraveSoftware\Brave-Browser\Application\brave.exe"),
+    ]
+    for p in brave_paths:
+        if os.path.exists(p):
+            return p
+
     edge_paths = [
         os.path.expandvars(r"%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"),
         os.path.expandvars(r"%ProgramFiles%\Microsoft\Edge\Application\msedge.exe"),
@@ -131,7 +211,11 @@ def get_browser_app_cmd():
 
 def launch_or_toggle_ui():
     """Toggles the transparent popup UI or launches it if not open."""
-    ensure_server_running()
+    inp = user32.OpenInputDesktop(0, False, 0x01FF)
+    if inp:
+        user32.SetThreadDesktop(inp)
+
+    ensure_server_running(include_hotkey=True)
 
     hwnd = find_app_window()
     if hwnd:
@@ -158,15 +242,17 @@ def launch_or_toggle_ui():
             user32.SetForegroundWindow(hwnd)
             return
 
-    # Window does not exist yet: launch in chromeless app mode
+    # Window does not exist yet: launch in chromeless app mode with isolated profile
     browser_exe = get_browser_app_cmd()
+    user_data = os.path.expandvars(r"%LocalAppData%\ANDA\hud_session")
     if browser_exe:
         print(f"[*] Launching popup window using {os.path.basename(browser_exe)} in app mode...")
         cmd = [
             browser_exe,
+            f"--user-data-dir={user_data}",
             f"--app={APP_URL}",
             "--window-size=740,890",
-            "--window-position=400,80",
+            "--window-position=590,80",
             "--disable-features=TranslateUI",
             "--disable-extensions",
         ]
@@ -179,6 +265,11 @@ def launch_or_toggle_ui():
             stderr=subprocess.DEVNULL,
             close_fds=True,
         )
+        time.sleep(0.8)
+        new_hwnd = find_app_window()
+        if new_hwnd:
+            user32.SetWindowPos(new_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW)
+            user32.SetForegroundWindow(new_hwnd)
     else:
         # Fallback to default browser
         import webbrowser
@@ -193,6 +284,10 @@ def hardware_key_listener():
     VK_LWIN = 0x5B
     VK_RWIN = 0x5C
     was_pressed = False
+
+    inp = user32.OpenInputDesktop(0, False, 0x01FF)
+    if inp:
+        user32.SetThreadDesktop(inp)
 
     while True:
         try:
@@ -217,7 +312,11 @@ def run_daemon():
     print(" Press Ctrl + Windows Key to toggle the transparent popup UI")
     print("=" * 65)
 
-    ensure_server_running()
+    inp = user32.OpenInputDesktop(0, False, 0x01FF)
+    if inp:
+        user32.SetThreadDesktop(inp)
+
+    ensure_server_running(include_hotkey=False)
 
     # Launch hardware keyboard poller thread for 100% reliable Left Ctrl + Win capture
     hw_thread = threading.Thread(target=hardware_key_listener, daemon=True)
@@ -227,37 +326,29 @@ def run_daemon():
     msg = wintypes.MSG()
     user32.PeekMessageW(ctypes.byref(msg), None, 0, 0, 0)
 
-    # Register Global Hotkeys:
-    # 1. Ctrl + Left Windows Key
-    h1 = user32.RegisterHotKey(None, 1, MOD_CONTROL | MOD_NOREPEAT, VK_LWIN)
-    # 2. Ctrl + Right Windows Key
-    h2 = user32.RegisterHotKey(None, 2, MOD_CONTROL | MOD_NOREPEAT, VK_RWIN)
-    # 3. Windows Key + Ctrl Key
-    h3 = user32.RegisterHotKey(None, 3, MOD_WIN | MOD_NOREPEAT, VK_CONTROL)
-    # 4. Fallback secondary hotkey: Ctrl + Alt + O
+    # Register Fallback hotkey: Ctrl + Alt + O
     h4 = user32.RegisterHotKey(None, 4, MOD_CONTROL | MOD_ALT | MOD_NOREPEAT, VK_O)
 
     print(f"[*] Hotkeys Registered:")
-    print(f"    - Ctrl + Left Win : {'SUCCESS' if h1 else 'FAILED'}")
-    print(f"    - Ctrl + Right Win: {'SUCCESS' if h2 else 'FAILED'}")
-    print(f"    - Win + Ctrl      : {'SUCCESS' if h3 else 'FAILED'}")
-    print(f"    - Ctrl + Alt + O  : {'SUCCESS' if h4 else 'FAILED'} (Secondary Fallback)")
+    print(f"    - Hardware Key combo [Ctrl + Win] : ARMED & POLLING (20ms)")
+    print(f"    - Ctrl + Alt + O                  : {'SUCCESS' if h4 else 'FAILED'} (Secondary Fallback)")
     print("[*] Daemon listening for hotkey combo...")
 
     try:
-        while user32.GetMessageW(ctypes.byref(msg), None, 0, 0) > 0:
-            if msg.message == WM_HOTKEY:
-                hotkey_id = msg.wParam
-                print(f"[!] Hotkey Triggered! ID: {hotkey_id}")
-                launch_or_toggle_ui()
-            user32.TranslateMessage(ctypes.byref(msg))
-            user32.DispatchMessageW(ctypes.byref(msg))
+        while True:
+            res = user32.GetMessageW(ctypes.byref(msg), None, 0, 0)
+            if res > 0:
+                if msg.message == WM_HOTKEY:
+                    hotkey_id = msg.wParam
+                    print(f"[!] Hotkey Triggered! ID: {hotkey_id}")
+                    launch_or_toggle_ui()
+                user32.TranslateMessage(ctypes.byref(msg))
+                user32.DispatchMessageW(ctypes.byref(msg))
+            else:
+                time.sleep(0.1)
     except KeyboardInterrupt:
         print("\n[*] Stopping hotkey daemon...")
     finally:
-        user32.UnregisterHotKey(None, 1)
-        user32.UnregisterHotKey(None, 2)
-        user32.UnregisterHotKey(None, 3)
         user32.UnregisterHotKey(None, 4)
         print("[*] Unregistered all hotkeys cleanly.")
 
@@ -265,5 +356,7 @@ def run_daemon():
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--toggle":
         launch_or_toggle_ui()
+    elif len(sys.argv) > 1 and sys.argv[1] == "--install-page":
+        open_install_page()
     else:
         run_daemon()

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ANDA Agent | Install</title>
+  <link rel="stylesheet" href="install.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="loader" id="loader" aria-hidden="true">
+    <div class="loader-line">
+      <span id="loaderPercent">// loading - 0%</span>
+      <span>https://anda.local/install/kernel/dual-plane</span>
+    </div>
+    <button class="sound-gate scramble" type="button" data-text="Activate console">Activate console</button>
+  </div>
+
+  <header class="site-header">
+    <a class="mark scramble" href="/install.html" data-text="ANDA">ANDA</a>
+    <nav class="nav-links" aria-label="Primary">
+      <a class="scramble" href="#project" data-text="Project">Project</a>
+      <a class="scramble" href="#install" data-text="Install">Install</a>
+      <a class="scramble" href="#protocol" data-text="Protocol">Protocol</a>
+      <a class="scramble" href="#faq" data-text="FAQ">FAQ</a>
+    </nav>
+    <a class="sign-in scramble" href="/index.html" data-text="Open HUD">Open HUD</a>
+  </header>
+
+  <main>
+    <section class="hero" id="project">
+      <div class="intro-console" aria-label="Installation console">
+        <p>// initializing</p>
+        <p>new files in database</p>
+        <p class="indented">anda_installer.ps1</p>
+        <p class="indented">dual_plane_manifest.json</p>
+        <p>activate console for access...</p>
+      </div>
+
+      <p class="manifest">
+        ANDA is a local Windows agent layer for command routing, file staging,
+        memory recall, and elevated system actions that wait for explicit human approval.
+      </p>
+
+      <div class="hero-stat" aria-label="ANDA mission statements">
+        <h1><span>01A</span> Activate .</h1>
+        <h1><span>02N</span> Navigate .</h1>
+        <h1><span>03D</span> Defend .</h1>
+        <h1><span>04A</span> Approve .</h1>
+      </div>
+
+      <p class="hero-subcopy">The agent layer for your Windows laptop.</p>
+      <a class="scroll-cue scramble" href="#install" data-text="Scroll">Scroll</a>
+    </section>
+
+    <section class="status-strip" aria-label="ANDA local stack status preview">
+      <div class="status-head">
+        <span>// local stack</span>
+        <span id="stackStatus">Checking...</span>
+      </div>
+      <div class="status-grid">
+        <div class="plane-row" data-service="orchestrator">
+          <span>Orchestrator</span>
+          <strong id="orchestratorStatus">Unknown</strong>
+        </div>
+        <div class="plane-row" data-service="worker">
+          <span>Worker</span>
+          <strong id="workerStatus">Unknown</strong>
+        </div>
+        <div class="plane-row" data-service="daemon">
+          <span>Daemon</span>
+          <strong id="daemonStatus">Unknown</strong>
+        </div>
+      </div>
+      <div class="meter" aria-hidden="true"><span id="stackMeter"></span></div>
+    </section>
+
+    <section class="install-section reveal" id="install">
+      <div class="section-kicker">Install ANDA</div>
+      <div class="split">
+        <h2>One command, local control.</h2>
+        <div class="install-shell">
+          <div class="shell-tabs" role="tablist" aria-label="Install command platform">
+            <button class="tab active scramble" type="button" data-command="windows" data-text="Windows">Windows</button>
+            <button class="tab scramble" type="button" data-command="local" data-text="Local">Local</button>
+          </div>
+          <div class="command-row">
+            <code id="installCommand">irm https://raw.githubusercontent.com/PTejasKr/ANDA/main/install.ps1 | iex</code>
+            <button class="copy-button scramble" type="button" id="copyCommand" data-text="Copy">Copy</button>
+          </div>
+          <p id="copyStatus">Creates laptop shortcuts, starts the local stack, and opens this installer page.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="protocol reveal" id="protocol">
+      <div class="section-kicker">Protocol</div>
+      <div class="protocol-list">
+        <article>
+          <span>01</span>
+          <h3>Connect</h3>
+          <p>Browser HUD, local command routing, file manager APIs, and global hotkey access.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <h3>Remember</h3>
+          <p>Local vector memory indexes staged files for grounded recall and repeatable work.</p>
+        </article>
+        <article>
+          <span>03</span>
+          <h3>Separate</h3>
+          <p>The unprivileged worker plane stays apart from elevated operating-system actions.</p>
+        </article>
+        <article>
+          <span>04</span>
+          <h3>Approve</h3>
+          <p>USB flashing, updates, and quarantine escalation wait for human-in-the-loop confirmation.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="access reveal">
+      <div>
+        <div class="section-kicker">Desktop access</div>
+        <h2>Summon the HUD without leaving your flow.</h2>
+      </div>
+      <div class="access-links">
+        <a class="scramble" href="/index.html" data-text="Open HUD">Open HUD</a>
+        <a class="scramble" href="#install" data-text="View command">View command</a>
+        <span>Ctrl + Win // desktop summon</span>
+      </div>
+    </section>
+
+    <section class="faq reveal" id="faq">
+      <div class="section-kicker">More details</div>
+      <details open>
+        <summary>What does ANDA install?</summary>
+        <p>It installs dependencies, creates laptop shortcuts, starts the full local stack, and serves the HUD plus this installer page on port 8080.</p>
+      </details>
+      <details>
+        <summary>Which shortcut should I use?</summary>
+        <p>Use the desktop shortcut named ANDA to start the complete stack. Press Ctrl + Windows key after the daemon is running to toggle the HUD.</p>
+      </details>
+      <details>
+        <summary>Where is the app?</summary>
+        <p>The installer page is at <code>/install.html</code>. The operational HUD is at <code>/index.html</code>.</p>
+      </details>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026</span>
+    <a class="scramble" href="/index.html" data-text="Open HUD">Open HUD</a>
+  </footer>
+
+  <script src="install.js"></script>
+</body>
+</html>

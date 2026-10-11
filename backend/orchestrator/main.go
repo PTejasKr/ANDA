@@ -455,6 +455,13 @@ func main() {
 	mux.HandleFunc("/api/brain/status", RateLimitMiddleware(server.globalLimiter, server.handleBrainStatus))
 	mux.HandleFunc("/api/stt/transcribe", RateLimitMiddleware(server.commandLimiter, server.handleSTTTranscribe))
 
+	mux.HandleFunc("/install", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/install.html", http.StatusFound)
+	})
+	mux.HandleFunc("/app", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/index.html", http.StatusFound)
+	})
+
 	// Static Frontend Server
 	frontendDir := filepath.Join(".", "frontend")
 	fileServer := http.FileServer(http.Dir(frontendDir))

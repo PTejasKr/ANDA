@@ -84,46 +84,53 @@ Write-Host "[3/5] Configuring Windows Startup and Desktop Shortcuts..." -Foregro
 $wshShell = New-Object -ComObject WScript.Shell
 
 $startupFolder = [System.IO.Path]::Combine($env:APPDATA, "Microsoft\Windows\Start Menu\Programs\Startup")
-$startupLnkPath = Join-Path $startupFolder "OmniOperator.lnk"
+$startupLnkPath = Join-Path $startupFolder "ANDA.lnk"
 $daemonScript = Join-Path $scriptDir "hotkey_daemon.py"
+$deployScript = Join-Path $scriptDir "execution\deploy_local.py"
+$startBat = Join-Path $scriptDir "start.bat"
+
+foreach ($oldShortcut in @(
+    (Join-Path $startupFolder "OmniOperator.lnk"),
+    (Join-Path ([System.Environment]::GetFolderPath("Desktop")) "Omni-Operator (Ctrl+Win).lnk")
+)) {
+    Remove-Item -LiteralPath $oldShortcut -Force -ErrorAction SilentlyContinue
+}
 
 $shortcut = $wshShell.CreateShortcut($startupLnkPath)
 $shortcut.TargetPath = $pythonwPath
-$shortcut.Arguments = "`"$daemonScript`""
+$shortcut.Arguments = "`"$deployScript`" --with-hotkey"
 $shortcut.WorkingDirectory = $scriptDir
-$shortcut.Description = "Omni-Operator Global Hotkey Daemon (Left Ctrl + Win)"
+$shortcut.Description = "ANDA local stack and global hotkey daemon"
 $shortcut.WindowStyle = 7 # Minimized/Hidden
 $shortcut.Save()
 Write-Host "      -> Configured Auto-Start: $startupLnkPath" -ForegroundColor Green
 
 $desktopFolder = [System.Environment]::GetFolderPath("Desktop")
-$desktopLnkPath = Join-Path $desktopFolder "Omni-Operator (Ctrl+Win).lnk"
+$desktopLnkPath = Join-Path $desktopFolder "ANDA.lnk"
 
 $desktopShortcut = $wshShell.CreateShortcut($desktopLnkPath)
-$desktopShortcut.TargetPath = $pythonwPath
-$desktopShortcut.Arguments = "`"$daemonScript`" --toggle"
+$desktopShortcut.TargetPath = $startBat
+$desktopShortcut.Arguments = ""
 $desktopShortcut.WorkingDirectory = $scriptDir
-$desktopShortcut.Description = "Omni-Operator Transparent Popup UI"
+$desktopShortcut.Description = "Start ANDA local stack and desktop HUD"
 $desktopShortcut.Save()
 Write-Host "      -> Created Desktop Shortcut: $desktopLnkPath" -ForegroundColor Green
 
 # 5. Launch Background Services
-Write-Host "[4/5] Launching Omni-Operator Hotkey Daemon in Background..." -ForegroundColor Yellow
+Write-Host "[4/5] Launching ANDA local stack in Background..." -ForegroundColor Yellow
 
 # Terminate previous stale instances
 Get-CimInstance Win32_Process -Filter "Name LIKE 'python%'" -ErrorAction SilentlyContinue | Where-Object {
-    $_.CommandLine -like "*hotkey_daemon.py*" -or $_.CommandLine -like "*server.py*"
+    $_.CommandLine -like "*hotkey_daemon.py*" -or
+    $_.CommandLine -like "*server.py*" -or
+    $_.CommandLine -like "*deploy_local.py*"
 } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 
-# Start server in background
-$serverScript = Join-Path $scriptDir "server.py"
-Start-Process -FilePath $pythonwPath -ArgumentList "`"$serverScript`"" -WorkingDirectory $scriptDir -WindowStyle Hidden
+# Start full stack in background
+Start-Process -FilePath $pythonwPath -ArgumentList "`"$deployScript`" --with-hotkey" -WorkingDirectory $scriptDir -WindowStyle Hidden
 
-# Start hotkey_daemon in background
-Start-Process -FilePath $pythonwPath -ArgumentList "`"$daemonScript`"" -WorkingDirectory $scriptDir -WindowStyle Hidden
-
-Start-Sleep -Seconds 2
-Write-Host "      -> Background Daemon is ACTIVE and listening for [Left Ctrl + Win]!" -ForegroundColor Green
+Start-Sleep -Seconds 4
+Write-Host "      -> ANDA stack launch requested. Hotkey: [Left Ctrl + Win]." -ForegroundColor Green
 
 # 6. Verify Installation
 Write-Host "[5/5] Running Verification Tests..." -ForegroundColor Yellow
@@ -132,12 +139,20 @@ if (Test-Path $verifyScript) {
     & python $verifyScript
 }
 
+$landingUrl = "http://localhost:8080/install.html"
+try {
+    Start-Process $landingUrl
+} catch {
+    Write-Host "      -> Open manually: $landingUrl" -ForegroundColor Gray
+}
+
 Write-Host ""
 Write-Host "=================================================================" -ForegroundColor Cyan
 Write-Host "   INSTALLATION COMPLETE! READY TO USE." -ForegroundColor Green
 Write-Host "=================================================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host " Hardware Hotkey : Press [Left Ctrl + Windows Key] to summon your UI." -ForegroundColor White
-Write-Host " Local Web URL   : http://localhost:8080" -ForegroundColor Gray
+Write-Host " Install Page    : http://localhost:8080/install.html" -ForegroundColor Gray
+Write-Host " Local HUD       : http://localhost:8080/index.html" -ForegroundColor Gray
 Write-Host " Desktop Shortcut: $desktopLnkPath" -ForegroundColor Gray
 Write-Host ""

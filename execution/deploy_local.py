@@ -96,7 +96,9 @@ def start_stack(with_hotkey: bool = False):
     if with_hotkey:
         print("[+] Spawning Windows Global Hotkey Listener [Ctrl + Win]...")
         hotkey_script = "hotkey_daemon.py" if os.path.exists("hotkey_daemon.py") else "execution/global_hotkey_listener.py"
-        hotkey_proc = subprocess.Popen([sys.executable, os.path.abspath(hotkey_script)])
+        hotkey_env = os.environ.copy()
+        hotkey_env["ANDA_STACK_MANAGED"] = "1"
+        hotkey_proc = subprocess.Popen([sys.executable, os.path.abspath(hotkey_script)], env=hotkey_env)
         procs.append(hotkey_proc)
 
     # Poll until services become responsive

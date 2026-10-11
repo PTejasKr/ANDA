@@ -30,11 +30,21 @@ class OmniHandler(SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+        if self.path == "/install":
+            self.send_response(302)
+            self.send_header("Location", "/install.html")
+            self.end_headers()
+            return
+        if self.path == "/app":
+            self.send_response(302)
+            self.send_header("Location", "/index.html")
+            self.end_headers()
+            return
         if self.path.startswith("/api/system/status"):
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(b'{"orchestrator":"online","worker_plane":"online","daemon_ipc":"online","storage_root":"storage","mode":"server_fallback"}')
+            self.wfile.write(b'{"orchestrator":"static_fallback","worker_plane":"offline","daemon_ipc":"offline","storage_root":"storage","mode":"server_fallback"}')
             return
         if self.path == "/health":
             self.send_response(200)
