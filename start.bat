@@ -2,7 +2,7 @@
 setlocal
 cd /d "%~dp0"
 echo =====================================================================
-echo   OMNI-OPERATOR - Dual-Plane Stack with Hotkey Daemon
+echo   ANDA - Dual-Plane Desktop Agent with Hotkey Daemon
 echo =====================================================================
 echo.
 python execution\deploy_local.py --with-hotkey %*

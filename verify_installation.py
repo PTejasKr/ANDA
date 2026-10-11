@@ -1,5 +1,5 @@
 """
-Omni-Operator Installation & Hotkey Verification Suite
+ANDA Installation & Hotkey Verification Suite
 Verifies:
 1. Python environment and platform capabilities.
 2. Local UI server and asset delivery (index.html, styles.css, app.js).

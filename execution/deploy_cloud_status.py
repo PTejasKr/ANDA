@@ -118,7 +118,7 @@ def main():
 
     # Probe live endpoints if available
     probe_cloud_endpoint("http://127.0.0.1:8787/health", "Local Cloudflare Dev Server (Wrangler)")
-    probe_cloud_endpoint("https://anda-omni-operator.fly.dev/api/system/status", "Fly.io Production Target")
+    probe_cloud_endpoint("https://anda-anda.fly.dev/api/system/status", "Fly.io Production Target")
 
     print("\n" + "=" * 70)
     if f_ok and cf_ok and d_ok:

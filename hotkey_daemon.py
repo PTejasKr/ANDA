@@ -7,6 +7,7 @@ Pure standard library: uses ctypes Win32 API.
 import os
 import sys
 import time
+import threading
 import subprocess
 import urllib.request
 import ctypes
@@ -185,6 +186,31 @@ def launch_or_toggle_ui():
         webbrowser.open(APP_URL)
 
 
+def hardware_key_listener():
+    """Direct hardware keyboard polling for Left Ctrl + Windows Key with debouncing."""
+    VK_LCONTROL = 0xA2
+    VK_RCONTROL = 0xA3
+    VK_LWIN = 0x5B
+    VK_RWIN = 0x5C
+    was_pressed = False
+
+    while True:
+        try:
+            ctrl_down = bool((user32.GetAsyncKeyState(VK_LCONTROL) & 0x8000) or (user32.GetAsyncKeyState(VK_RCONTROL) & 0x8000))
+            win_down = bool((user32.GetAsyncKeyState(VK_LWIN) & 0x8000) or (user32.GetAsyncKeyState(VK_RWIN) & 0x8000))
+
+            if ctrl_down and win_down:
+                if not was_pressed:
+                    was_pressed = True
+                    print("[!] Hardware Keyboard Shortcut Detected: Left Ctrl + Win")
+                    launch_or_toggle_ui()
+            else:
+                was_pressed = False
+            time.sleep(0.02)
+        except Exception:
+            time.sleep(0.1)
+
+
 def run_daemon():
     print("=" * 65)
     print(" ANDA | Windows Hotkey Daemon")
@@ -192,6 +218,10 @@ def run_daemon():
     print("=" * 65)
 
     ensure_server_running()
+
+    # Launch hardware keyboard poller thread for 100% reliable Left Ctrl + Win capture
+    hw_thread = threading.Thread(target=hardware_key_listener, daemon=True)
+    hw_thread.start()
 
     # Create message queue for thread
     msg = wintypes.MSG()

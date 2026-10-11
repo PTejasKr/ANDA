@@ -39,7 +39,7 @@ def run_command(cmd, name):
 
 def main():
     print("\n" + "#"*70)
-    print("# OMNI-OPERATOR OS AGENT: DUAL-PLANE AUTOMATED TEST SUITE")
+    print("# ANDA OS AGENT: DUAL-PLANE AUTOMATED TEST SUITE")
     print("#"*70)
 
     results = []

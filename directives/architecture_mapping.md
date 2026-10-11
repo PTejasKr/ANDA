@@ -1,8 +1,8 @@
-# Architecture Mapping: Omni-Operator Dual-Plane Subsystems
+# Architecture Mapping: ANDA Dual-Plane Subsystems
 
 ## 1. Subsystem Topology & Plane Isolation
 
-Omni-Operator is split into two non-overlapping execution planes to prevent privilege escalation and ensure reliable autonomous desktop automation.
+ANDA is split into two non-overlapping execution planes to prevent privilege escalation and ensure reliable autonomous desktop automation.
 
 ```
 +-----------------------------------------------------------------------------------+

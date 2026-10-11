@@ -59,7 +59,7 @@ def ensure_binaries():
 
 def start_stack(with_hotkey: bool = False):
     print("\n" + "="*70)
-    print("[*] DEPLOYING OMNI-OPERATOR OS AGENT (LOCAL LEVEL)")
+    print("[*] DEPLOYING ANDA OS AGENT (LOCAL LEVEL)")
     print("="*70)
 
     # 0. Pre-flight Port Cleanup & Binary Check

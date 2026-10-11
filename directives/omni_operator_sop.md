@@ -1,4 +1,4 @@
-# Omni-Operator OS Agent - Standard Operating Procedure (SOP)
+# ANDA OS Agent - Standard Operating Procedure (SOP)
 
 ## 1. Objective
 Establish dual-plane execution boundaries between unprivileged user-level data orchestration (research, file parsing, spreadsheet synthesis) and elevated administrative OS operations (USB flashing, system updates, quarantine isolation).
