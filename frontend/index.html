@@ -3,497 +3,550 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ANDA | Autonomous Native Desktop Assistant for Windows</title>
+  <title>anda° — One Click Desktop HUD</title>
+  
+  <!-- Pinterest Pin Font Pairing: Editorial Serif + Modern Clean Geometric Sans + Crisp Monospace -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="site-body">
 
-  <!-- Ambient Glow Background -->
-  <div class="ambient-glow glow-1"></div>
-  <div class="ambient-glow glow-2"></div>
-  <div class="grid-overlay"></div>
+  <!-- Ambient Light Atmosphere (Porcelain Canvas with Soft Ethereal Glow) -->
+  <div class="ambient-glow glow-top"></div>
+  <div class="ambient-glow glow-egg"></div>
 
-  <!-- Navigation Bar -->
-  <header class="navbar">
-    <div class="nav-container">
-      <a href="#" class="brand-logo">
-        <div class="brand-glyph">
-          <div class="glyph-core"></div>
-        </div>
-        <span class="brand-name">ANDA</span>
-        <span class="brand-tag">v2.4 Windows</span>
+  <!-- 1. Floating Pill Navigation Bar (Exact Pinterest Pin Styling) -->
+  <header class="navbar-wrapper">
+    <div class="navbar-pill">
+      <!-- Brand Logo -->
+      <a href="#" class="brand-link">
+        <span class="brand-word">anda</span><span class="brand-deg">°</span>
       </a>
 
-      <nav class="nav-menu">
-        <a href="#showcase" class="nav-link">Native HUD</a>
-        <a href="#features" class="nav-link">Features</a>
-        <a href="#architecture" class="nav-link">Dual-Plane OS</a>
-        <a href="#gemma" class="nav-link">Gemma Engine</a>
-        <a href="#settings" class="nav-link">Settings</a>
+      <!-- Navigation Links -->
+      <nav class="nav-links">
+        <a href="#hero" class="nav-item active">Overview</a>
+        <a href="#hud-playground" class="nav-item">Native HUD</a>
+        <a href="#features" class="nav-item">Capabilities</a>
+        <a href="#workflow" class="nav-item">How it works</a>
+        <a href="#download" class="nav-item">Install</a>
       </nav>
 
-      <div class="nav-actions">
-        <div class="live-pill" id="livePill" title="Live Health Monitor">
-          <span class="pulse-dot"></span>
-          <span id="stackStatusText">Systems Online</span>
+      <!-- Right Action & System Ping -->
+      <div class="nav-right">
+        <div class="system-status-indicator" title="Local System Daemon">
+          <span class="status-pulse-dot"></span>
+          <span class="status-text" id="daemonStatusText">Systems Online</span>
         </div>
-        <a href="/anda.exe" download="anda.exe" class="btn-download-nav">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span>Download .EXE</span>
+        <a href="/anda.exe" download="anda.exe" class="btn-pill-dark">
+          <span>Get the app</span>
+          <svg class="arrow-diag" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
         </a>
       </div>
     </div>
   </header>
 
-  <!-- Hero Section -->
-  <section class="hero-section">
+  <!-- 2. Hero Section (Exact Pinterest Pin Layout with Pure ASCII Art Egg Centerpiece) -->
+  <section class="hero-section" id="hero">
     <div class="hero-container">
-      <div class="hero-badge">
-        <span class="badge-icon">⚡</span>
-        <span>NATIVE WINDOWS HUD • ZERO LATENCY</span>
+
+      <!-- Top-Right Rotating Star Seal Badge (From Pin 520025088247216830) -->
+      <div class="rotating-seal-badge" title="Native Windows HUD">
+        <svg class="seal-svg" viewBox="0 0 160 160">
+          <path id="sealPath" fill="none" d="M 80, 80 m -62, 0 a 62,62 0 1,1 124,0 a 62,62 0 1,1 -124,0" />
+          <text class="seal-text">
+            <textPath href="#sealPath" startOffset="0%">
+              • ONE KEYSTROKE • ZERO FRICTION • INSTANT HUD • ALL APPS 
+            </textPath>
+          </text>
+        </svg>
+        <div class="seal-center-star">✦</div>
       </div>
 
-      <h1 class="hero-title">
-        The Native Windows Agent.<br>
-        <span class="gradient-text">One Shortcut Away.</span>
-      </h1>
+      <!-- Hero Header & Editorial Typography -->
+      <div class="hero-copy-block">
+        <h1 class="hero-title">
+          <span class="serif-regular">One click to command</span><br>
+          <span class="serif-italic">your entire machine.</span>
+        </h1>
+        <p class="hero-subtext">
+          Instant desktop HUD. Speak or type to execute any workflow across every application.
+        </p>
 
-      <p class="hero-lead">
-        Summoned anywhere with <kbd class="kbd-pill">Left Ctrl</kbd> + <kbd class="kbd-pill">Win</kbd>. 
-        Instant voice and text execution powered by local AI. No browser tabs. No subscription fees.
-      </p>
+        <!-- CTA Buttons (Black Pill + Secondary Frosted Pill) -->
+        <div class="hero-cta-row">
+          <a href="/anda.exe" download="anda.exe" class="btn-pill-dark btn-hero-cta">
+            <span>Get started free</span>
+            <svg class="arrow-right" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
 
-      <div class="hero-cta-group">
-        <a href="/anda.exe" download="anda.exe" class="btn-cta-primary">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <div class="cta-text">
-            <strong>Download anda.exe</strong>
-            <span>Standalone Windows Executable (61MB)</span>
+          <a href="#hud-playground" class="btn-pill-frosted">
+            <span class="play-circle-icon">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+            </span>
+            <span>Try live HUD</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Hero Interactive Stage: ASCII Egg with Radial Floating Cards & Connector Threads -->
+      <div class="hero-stage">
+
+        <!-- SVG Curved Connector Threads linking Cards to Centerpiece -->
+        <svg class="connector-threads-svg" viewBox="0 0 1200 600" preserveAspectRatio="none">
+          <!-- Left thread: Left Card to Egg center -->
+          <path class="thread-line" id="threadLeft" d="M 230 190 C 340 220, 440 280, 520 280" />
+          <!-- Right thread: Right Card to Egg center -->
+          <path class="thread-line" id="threadRight" d="M 970 230 C 860 250, 760 280, 680 280" />
+        </svg>
+
+        <!-- Left Floating Card (Waveform + Voice Highlight) -->
+        <div class="floating-glass-card card-left">
+          <div class="card-icon-bubble">
+            <div class="mini-waveform">
+              <span class="bar b1"></span>
+              <span class="bar b2"></span>
+              <span class="bar b3"></span>
+              <span class="bar b4"></span>
+              <span class="bar b5"></span>
+            </div>
           </div>
-        </a>
-
-        <a href="#quickstart" class="btn-cta-secondary">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-          <span>Install via PowerShell</span>
-        </a>
-      </div>
-
-      <!-- Quick Command Terminal Bar (Full Length, Zero Scrollbar) -->
-      <div class="terminal-bar" id="quickstart">
-        <div class="terminal-label">POWERSHELL ONE-LINE INSTALLER</div>
-        <div class="terminal-command-wrap">
-          <code id="cliCommand">irm https://raw.githubusercontent.com/PTejasKr/ANDA/main/install.ps1 | iex</code>
-          <button class="btn-copy" id="btnCopyCmd" title="Copy to clipboard">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            <span id="copyText">Copy</span>
-          </button>
-        </div>
-        <div class="terminal-meta">
-          <span>✓ Global Left Ctrl + Win shortcut</span>
-          <span>✓ Auto-starts with Windows</span>
-          <span>✓ 100% Free & Local</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Interactive Live Native HUD Showcase -->
-  <section class="showcase-section" id="showcase">
-    <div class="section-header">
-      <span class="section-tag">DESKTOP HUD</span>
-      <h2 class="section-title">Microphone. Textbox. Nothing Else.</h2>
-      <p class="section-desc">
-        Press <code>Left Ctrl + Win</code> anywhere in Windows to toggle the HUD. Fast, private, and always one key away.
-      </p>
-    </div>
-
-    <div class="mockup-stage">
-      <div class="desktop-mockup-frame">
-        <div class="mockup-header-bar">
-          <span class="circle red"></span>
-          <span class="circle yellow"></span>
-          <span class="circle green"></span>
-          <span class="mockup-title">Windows 11 Desktop • Ready</span>
+          <h3 class="card-title">Turn voice into execution.</h3>
+          <p class="card-subtitle">Speak naturally, run instantly.</p>
         </div>
 
-        <div class="mockup-screen-area">
-          <div class="mockup-wallpaper-preview">
-            <div class="desktop-icon">📁 Documents</div>
-            <div class="desktop-icon">📊 Invoices.xlsx</div>
-            <div class="desktop-icon">⚙️ Settings</div>
+        <!-- Right Floating Card (Avatars + Context Highlight) -->
+        <div class="floating-glass-card card-right">
+          <div class="card-avatar-cluster">
+            <img src="assets/avatar1.jpg" alt="User 1" class="avatar-dot" />
+            <img src="assets/avatar2.jpg" alt="User 2" class="avatar-dot" />
+            <img src="assets/avatar3.jpg" alt="User 3" class="avatar-dot" />
+            <span class="avatar-plus">+</span>
           </div>
+          <h3 class="card-title">Any app, any window.</h3>
+          <p class="card-subtitle">Zero context switching across your workspace.</p>
+        </div>
 
-          <!-- THE PILL HUD (Interactive Simulation - Pinterest Dark Frosted Hybrid Capsule) -->
-          <div class="anda-native-pill" id="demoPill">
-            <!-- 1. Pinterest Glowing Crimson Red Orb -->
-            <button class="pill-mic-orb" id="demoMicBtn" title="Click to speak / toggle voice recording">
-              <div class="mic-glow-aura" id="demoMicGlow"></div>
-              <div class="mic-orb-outer-ring"></div>
-              <div class="mic-orb-body">
-                <div class="mic-orb-inner-core">
-                  <div class="mic-orb-specular"></div>
-                </div>
-              </div>
+        <!-- Orbiting Glass Ribbons (From Pin Layout) -->
+        <div class="orbiting-ribbon ribbon-focus" id="ribbon1">
+          <img src="assets/tile-landscape.jpg" alt="Workspace" class="ribbon-thumb" />
+          <div class="ribbon-meta">
+            <span class="ribbon-badge">⚡ Instant HUD</span>
+            <span class="ribbon-sub">Deep work, bigger results.</span>
+          </div>
+        </div>
+
+        <div class="orbiting-ribbon ribbon-voice" id="ribbon2">
+          <img src="assets/tile-geometry.jpg" alt="Voice" class="ribbon-thumb" />
+          <div class="ribbon-meta">
+            <span class="ribbon-badge">🎙 Voice Flow</span>
+            <span class="ribbon-sub">Hands-free system triggers.</span>
+          </div>
+        </div>
+
+        <div class="orbiting-ribbon ribbon-omni" id="ribbon3">
+          <div class="ribbon-icon-omni">⌘</div>
+          <div class="ribbon-meta">
+            <span class="ribbon-badge">⌘ Omni Action</span>
+            <span class="ribbon-sub">Search, launch, toggle.</span>
+          </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- THE CENTERPIECE: PURE ASCII ART EGG ("ANDA")              -->
+        <!-- Breaks from left to right in a zig-zag pattern on scroll, -->
+        <!-- separates, and top shell hovers above!                    -->
+        <!-- ======================================================== -->
+        <div class="ascii-egg-stage" id="eggStage">
+
+          <!-- Interactive Crack Progress Scrub Indicator -->
+          <div class="egg-scrub-pill" id="eggScrubPill">
+            <span class="scrub-label">CRACK PROGRESS</span>
+            <div class="scrub-track">
+              <div class="scrub-fill" id="scrubFill" style="width: 0%;"></div>
+            </div>
+            <button class="btn-crack-toggle" id="btnCrackToggle" title="Click to test shell fracture">
+              ⚡ <span id="crackToggleLabel">Crack Shell</span>
             </button>
-
-            <!-- 2. Text Input Box -->
-            <div class="pill-input-box">
-              <input type="text" id="demoInput" placeholder="Ask ANDA anything... (Press Enter to execute)" autocomplete="off">
-            </div>
-
-            <!-- 3. Pinterest Digital Timer Display (00 MIN. / 03 SEC.) -->
-            <div class="pill-timer-display" id="demoTimerDisplay" title="Voice duration timer">
-              <div class="timer-unit">
-                <span class="timer-num" id="timerMin">00</span>
-                <span class="timer-lbl">MIN.</span>
-              </div>
-              <div class="timer-unit">
-                <span class="timer-indicator-bar"></span>
-                <span class="timer-num" id="timerSec">03</span>
-                <span class="timer-lbl">SEC.</span>
-              </div>
-            </div>
-
-            <!-- 4. Execute / Send Action Button -->
-            <button class="pill-send-btn" id="demoSendBtn" title="Execute command">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
           </div>
 
-          <!-- Ephemeral Status Feedback below HUD -->
-          <div class="pill-feedback-strip" id="demoStatus">
-            <span class="feedback-icon">⚡</span>
-            <span class="feedback-text" id="demoStatusText">Ready • Press [Left Ctrl + Win] anywhere to summon</span>
+          <!-- The ASCII Shell Assembly -->
+          <div class="ascii-egg-assembly" id="eggAssembly">
+            
+            <!-- Top Half of ASCII Egg (Separates upwards & hovers) -->
+            <div class="egg-half-container egg-top" id="eggTopShell">
+              <pre class="ascii-font-pre" id="asciiTopPre"></pre>
+            </div>
+
+            <!-- Fissure Crack Lighting & Energy Particle Layer -->
+            <div class="egg-fracture-energy" id="eggFractureLayer">
+              <div class="crack-spark-glow" id="crackSparkGlow"></div>
+              <pre class="ascii-crack-pre" id="asciiCrackPre"></pre>
+            </div>
+
+            <!-- Glowing HUD Core (Revealed nestled between cracked shells) -->
+            <div class="egg-core-hud" id="eggCoreHud">
+              <div class="core-radial-glow"></div>
+              <div class="core-pill-bar">
+                <span class="core-mic-dot"></span>
+                <span class="core-kbd-tag">Left Ctrl + Win</span>
+                <span class="core-pulse-bar">
+                  <span class="p-tick"></span>
+                  <span class="p-tick"></span>
+                  <span class="p-tick"></span>
+                </span>
+                <span class="core-action-txt">HUD Ready • Speak or Type</span>
+              </div>
+            </div>
+
+            <!-- Bottom Half of ASCII Egg (Grounded) -->
+            <div class="egg-half-container egg-bottom" id="eggBottomShell">
+              <pre class="ascii-font-pre" id="asciiBottomPre"></pre>
+            </div>
+
           </div>
 
-          <!-- Preset prompt pills for interactive testing -->
-          <div class="prompt-chips">
-            <span class="prompt-chip-label">QUICK COMMANDS:</span>
-            <button class="chip-btn" data-prompt="open youtube">🌐 YouTube</button>
-            <button class="chip-btn" data-prompt="search quantum computing on the internet">🔍 Search Web</button>
-            <button class="chip-btn" data-prompt="open sound settings">⚙️ Sound Settings</button>
-            <button class="chip-btn" data-prompt="open display settings">🖥️ Display Settings</button>
-            <button class="chip-btn" data-prompt="stage and categorize my downloads">📁 Stage Downloads</button>
-            <button class="chip-btn" data-prompt="recall memory for Q4 cloud expenses">🧠 Recall Memory</button>
+          <!-- Bottom Prompt to Scroll -->
+          <div class="scroll-hatch-hint" id="scrollHatchHint">
+            <span class="hint-mouse">
+              <span class="mouse-wheel"></span>
+            </span>
+            <span class="hint-text">Scroll to hatch</span>
           </div>
 
-          <!-- Progress Pathway -->
-          <div class="brightpath-track">
-            <div class="brightpath-step active">
-              <span class="step-num">01</span>
-              <div class="step-meta">
-                <strong>INTENT</strong>
-                <span>Hotkey & Voice Input</span>
-              </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Trust Proof Strip & Motto (Exact Pinterest Pin Styling) -->
+      <div class="hero-footer-strip">
+        <div class="trust-proof-cluster">
+          <div class="trust-avatars">
+            <img src="assets/avatar1.jpg" alt="Member" class="trust-avatar-img" />
+            <img src="assets/avatar2.jpg" alt="Member" class="trust-avatar-img" />
+            <img src="assets/avatar3.jpg" alt="Member" class="trust-avatar-img" />
+            <img src="assets/avatar4.jpg" alt="Member" class="trust-avatar-img" />
+            <span class="trust-plus">+</span>
+          </div>
+          <span class="trust-label">Trusted by 50,000+ power users worldwide.</span>
+        </div>
+
+        <div class="hero-clarity-motto">
+          <span class="star-glyph">✦</span>
+          <span class="motto-text">Less clicks. More clarity.</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 3. Interactive Live Native HUD Playground -->
+  <section class="section-container" id="hud-playground">
+    <div class="section-headline-group">
+      <div class="tag-pill">INTERACTIVE PLAYGROUND</div>
+      <h2 class="section-title-editorial">
+        <span class="serif-regular">One input bar.</span>
+        <span class="serif-italic">Zero distractions.</span>
+      </h2>
+      <p class="section-desc-compact">
+        Summoned globally across Windows. Try typing or speaking any task right here.
+      </p>
+    </div>
+
+    <!-- HUD Simulation Capsule -->
+    <div class="hud-stage-frame">
+      <div class="hud-capsule-island" id="hudIsland">
+        
+        <!-- Voice Orb (Crimson/Amber Glow) -->
+        <button class="voice-mic-orb" id="hudMicBtn" title="Toggle voice command simulation">
+          <div class="orb-aura" id="orbAura"></div>
+          <div class="orb-sphere">
+            <div class="orb-specular"></div>
+          </div>
+        </button>
+
+        <!-- Command Input Textbox -->
+        <div class="hud-input-wrap">
+          <span class="hud-input-prefix">⌘</span>
+          <input type="text" id="hudInput" placeholder="Type or speak: open Spotify, search web, sound settings..." autocomplete="off" />
+          <span class="hud-input-hint">↵ Run</span>
+        </div>
+
+        <!-- Digital Timer -->
+        <div class="hud-timer-unit">
+          <div class="timer-col">
+            <span class="timer-digits" id="timerMin">00</span>
+            <span class="timer-sub">MIN.</span>
+          </div>
+          <div class="timer-col">
+            <span class="timer-digits" id="timerSec">03</span>
+            <span class="timer-sub">SEC.</span>
+          </div>
+        </div>
+
+        <!-- Send / Execute Button -->
+        <button class="btn-hud-send" id="hudSendBtn" title="Execute command">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+
+      </div>
+
+      <!-- Live Execution Feedback Strip -->
+      <div class="hud-feedback-strip" id="hudFeedback">
+        <span class="fb-icon">⚡</span>
+        <span class="fb-content" id="hudStatusMsg">Ready • Press [Left Ctrl + Win] anywhere to summon</span>
+      </div>
+
+      <!-- Quick-Action Prompt Chips for Instant Testing -->
+      <div class="preset-chips-cluster">
+        <span class="chips-label">QUICK ACTIONS:</span>
+        <button class="preset-chip" data-prompt="search on internet for latest technology trends">🌐 Search: Tech Trends</button>
+        <button class="preset-chip" data-prompt="open spotify">🎵 Open Spotify</button>
+        <button class="preset-chip" data-prompt="open sound settings">⚙️ Sound Settings</button>
+        <button class="preset-chip" data-prompt="open downloads folder">📁 Open Downloads</button>
+        <button class="preset-chip" data-prompt="calculate 45 * 12 + 10">🔢 Math: 45 * 12 + 10</button>
+        <button class="preset-chip" data-prompt="open terminal">💻 Dev Terminal</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Capabilities (Graphical Representation Cards, Minimal Text Only) -->
+  <section class="section-container" id="features">
+    <div class="section-headline-group">
+      <div class="tag-pill">SYSTEM CAPABILITIES</div>
+      <h2 class="section-title-editorial">
+        <span class="serif-regular">Engineered for speed.</span>
+        <span class="serif-italic">Zero clutter.</span>
+      </h2>
+      <p class="section-desc-compact">
+        Graphical representation over text. Pure native responsiveness.
+      </p>
+    </div>
+
+    <!-- 4 Visual Bento Cards -->
+    <div class="capabilities-grid">
+      
+      <!-- Card 1: Global Shortcut Hook -->
+      <div class="bento-card">
+        <div class="bento-graphic-box">
+          <div class="keycap-pair">
+            <div class="keycap">Left Ctrl</div>
+            <span class="keycap-plus">+</span>
+            <div class="keycap">Win</div>
+          </div>
+          <div class="graphic-speed-meter">
+            <span class="speed-dot"></span>
+            <span class="speed-val">20ms Global Hook</span>
+          </div>
+        </div>
+        <div class="bento-meta">
+          <h3 class="bento-title">Global HUD Hotkey</h3>
+          <div class="bento-pills">
+            <span class="highlight-pill">Always On-Screen</span>
+            <span class="highlight-pill">Zero Window Switching</span>
+            <span class="highlight-pill">System Scope</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Voice Flow Waveform -->
+      <div class="bento-card">
+        <div class="bento-graphic-box">
+          <div class="waveform-visualizer">
+            <div class="wave-col w1"></div>
+            <div class="wave-col w2"></div>
+            <div class="wave-col w3"></div>
+            <div class="wave-col w4"></div>
+            <div class="wave-col w5"></div>
+            <div class="wave-col w6"></div>
+            <div class="wave-col w7"></div>
+            <div class="wave-col w8"></div>
+          </div>
+          <div class="graphic-speed-meter">
+            <span class="speed-val">16kHz Local Whisper • Zero Cloud</span>
+          </div>
+        </div>
+        <div class="bento-meta">
+          <h3 class="bento-title">Hands-Free Voice Flow</h3>
+          <div class="bento-pills">
+            <span class="highlight-pill">Continuous Dictation</span>
+            <span class="highlight-pill">0ms Lag</span>
+            <span class="highlight-pill">Local Engine</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Omni Smart Link Autocomplete -->
+      <div class="bento-card">
+        <div class="bento-graphic-box">
+          <div class="autocomplete-mockup">
+            <div class="mockup-row">
+              <span class="badge-tag web">WEB</span>
+              <span class="mock-txt">google.com/search</span>
             </div>
-            <div class="brightpath-line"></div>
-            <div class="brightpath-step active">
-              <span class="step-num">02</span>
-              <div class="step-meta">
-                <strong>AUTOCOMPLETE</strong>
-                <span>Smart Links & Apps</span>
-              </div>
+            <div class="mockup-row active">
+              <span class="badge-tag app">APP</span>
+              <span class="mock-txt">Spotify.exe</span>
             </div>
-            <div class="brightpath-line"></div>
-            <div class="brightpath-step active">
-              <span class="step-num">03</span>
-              <div class="step-meta">
-                <strong>EXECUTION</strong>
-                <span>Browser & Win32 Actions</span>
-              </div>
-            </div>
-            <div class="brightpath-line"></div>
-            <div class="brightpath-step active">
-              <span class="step-num">04</span>
-              <div class="step-meta">
-                <strong>ZERO-TRUST</strong>
-                <span>Confirmation for System Edits</span>
-              </div>
+            <div class="mockup-row">
+              <span class="badge-tag sys">SYS</span>
+              <span class="mock-txt">ms-settings:sound</span>
             </div>
           </div>
+        </div>
+        <div class="bento-meta">
+          <h3 class="bento-title">Smart Link Routing</h3>
+          <div class="bento-pills">
+            <span class="highlight-pill">Auto HTTPS & .com</span>
+            <span class="highlight-pill">Instant Autocomplete</span>
+            <span class="highlight-pill">Zero Clicks</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Deep Win32 OS Control -->
+      <div class="bento-card">
+        <div class="bento-graphic-box">
+          <div class="system-controls-strip">
+            <div class="sys-control-row">
+              <span>🔊 Volume</span>
+              <div class="mini-slider"><div class="slider-thumb" style="width: 65%;"></div></div>
+            </div>
+            <div class="sys-control-row">
+              <span>🖥 Display</span>
+              <span class="toggle-pill on">144Hz HDR</span>
+            </div>
+            <div class="sys-control-row">
+              <span>🛡 Zero-Trust</span>
+              <span class="toggle-pill verified">Safe Gate</span>
+            </div>
+          </div>
+        </div>
+        <div class="bento-meta">
+          <h3 class="bento-title">Deep Win32 Control</h3>
+          <div class="bento-pills">
+            <span class="highlight-pill">Native Win32 Actions</span>
+            <span class="highlight-pill">Low Idle RAM</span>
+            <span class="highlight-pill">Zero Telemetry</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 5. Visual Workflow Strip -->
+  <section class="section-container" id="workflow">
+    <div class="section-headline-group">
+      <div class="tag-pill">EXECUTION PIPELINE</div>
+      <h2 class="section-title-editorial">
+        <span class="serif-regular">From intent to outcome</span>
+        <span class="serif-italic">in 20 milliseconds.</span>
+      </h2>
+    </div>
+
+    <div class="workflow-strip">
+      <div class="wf-node">
+        <div class="wf-num">01</div>
+        <div class="wf-meta">
+          <strong>INTENT</strong>
+          <span>Hotkey or Voice</span>
+        </div>
+      </div>
+      <div class="wf-connector"></div>
+
+      <div class="wf-node">
+        <div class="wf-num">02</div>
+        <div class="wf-meta">
+          <strong>ROUTE</strong>
+          <span>Neural Parsing</span>
+        </div>
+      </div>
+      <div class="wf-connector"></div>
+
+      <div class="wf-node">
+        <div class="wf-num">03</div>
+        <div class="wf-meta">
+          <strong>EXECUTE</strong>
+          <span>Win32 & Browser</span>
+        </div>
+      </div>
+      <div class="wf-connector"></div>
+
+      <div class="wf-node">
+        <div class="wf-num">04</div>
+        <div class="wf-meta">
+          <strong>VERIFY</strong>
+          <span>Zero-Trust Gate</span>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Feature Catalogue Grid -->
-  <section class="features-section" id="features">
-    <div class="section-header">
-      <span class="section-tag">CAPABILITIES</span>
-      <h2 class="section-title">Speed. Privacy. Absolute Control.</h2>
-      <p class="section-desc">Minimalist native design backed by deterministic execution.</p>
-    </div>
-
-    <div class="features-grid">
-      <!-- Card 1 -->
-      <div class="feature-card">
-        <div class="feature-icon-box cyan">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-        </div>
-        <h3 class="feature-title">Pure Win32 Native</h3>
-        <p class="feature-body">
-          Lightweight binary compiled for Windows. Zero browser instances, near-zero idle RAM usage.
+  <!-- 6. Install & Download Strip -->
+  <section class="section-container" id="download">
+    <div class="download-banner-card">
+      <div class="download-header">
+        <div class="tag-pill-dark">WINDOWS 10 & 11</div>
+        <h2 class="download-title">
+          <span class="serif-regular">Ready to fly?</span>
+          <span class="serif-italic">Install in 5 seconds.</span>
+        </h2>
+        <p class="download-sub">
+          Standalone executable or PowerShell one-liner. No installer wizard required.
         </p>
-        <div class="feature-badge">Win32 Native • 20ms Hook</div>
       </div>
 
-      <!-- Card 2 -->
-      <div class="feature-card">
-        <div class="feature-icon-box purple">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12L2.1 10a10 10 0 0 0 9.9 10V12z"/></svg>
+      <div class="download-actions-grid">
+        <!-- Direct EXE Download -->
+        <div class="action-card-col">
+          <a href="/anda.exe" download="anda.exe" class="btn-pill-dark btn-download-huge">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <div class="btn-huge-copy">
+              <strong>Download anda.exe</strong>
+              <span>Standalone Executable • 61MB</span>
+            </div>
+          </a>
         </div>
-        <h3 class="feature-title">Free Local Intelligence</h3>
-        <p class="feature-body">
-          Powered by Google Gemma for offline and edge task execution. Zero subscription or API fees.
-        </p>
-        <div class="feature-badge">Gemma 3 • Zero Cost</div>
-      </div>
 
-      <!-- Card 3 -->
-      <div class="feature-card">
-        <div class="feature-icon-box blue">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        </div>
-        <h3 class="feature-title">Dual-Plane Security</h3>
-        <p class="feature-body">
-          Safe tasks execute in unprivileged sandbox; elevated system actions require physical confirmation.
-        </p>
-        <div class="feature-badge">Zero Trust • HITL Gate</div>
-      </div>
-
-      <!-- Card 4 -->
-      <div class="feature-card">
-        <div class="feature-icon-box emerald">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-        </div>
-        <h3 class="feature-title">Auto-Staging & Memory</h3>
-        <p class="feature-body">
-          Automatically sorts downloads and embeds documents into vector memory for instant search.
-        </p>
-        <div class="feature-badge">Smart Sort • Vector RAG</div>
-      </div>
-
-      <!-- Card 5 -->
-      <div class="feature-card">
-        <div class="feature-icon-box amber">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-        </div>
-        <h3 class="feature-title">Real-Time Voice Input</h3>
-        <p class="feature-body">
-          Hands-free speech-to-text with automatic silence detection and instant command execution.
-        </p>
-        <div class="feature-badge">Sub-Second Audio • Local STT</div>
-      </div>
-
-      <!-- Card 6 -->
-      <div class="feature-card">
-        <div class="feature-icon-box rose">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        </div>
-        <h3 class="feature-title">Threat Sandbox</h3>
-        <p class="feature-body">
-          Proactive security heuristics block prompt injections and suspicious payloads before execution.
-        </p>
-        <div class="feature-badge">Injection Guard • Threat Isolation</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Architecture Section -->
-  <section class="arch-section" id="architecture">
-    <div class="section-header">
-      <span class="section-tag">ARCHITECTURE</span>
-      <h2 class="section-title">Dual-Plane Isolation</h2>
-      <p class="section-desc">AI plans and routes. Native Windows code executes safely.</p>
-    </div>
-
-    <div class="arch-flow-diagram">
-      <div class="arch-column">
-        <div class="arch-badge">LAYER 1: INTERACTION</div>
-        <div class="arch-card">
-          <div class="arch-title">Native Floating HUD</div>
-          <p class="arch-text">Frameless glass pill summoned via Left Ctrl + Win. Accepts instant voice or text input.</p>
-          <div class="arch-endpoint">Win32 Global Hook</div>
-        </div>
-      </div>
-
-      <div class="arch-arrow">➔</div>
-
-      <div class="arch-column">
-        <div class="arch-badge">LAYER 2: ROUTING</div>
-        <div class="arch-card">
-          <div class="arch-title">Go Orchestrator (:8080)</div>
-          <p class="arch-text">Classifies intent with Gemma, validates URLs, and enforces security constraints.</p>
-          <div class="arch-endpoint">REST API (:8080)</div>
-        </div>
-      </div>
-
-      <div class="arch-arrow">➔</div>
-
-      <div class="arch-column">
-        <div class="arch-badge">LAYER 3: EXECUTION</div>
-        <div class="arch-card split-card">
-          <div class="sub-plane unprivileged">
-            <strong>Worker Plane (:50051)</strong>
-            <span>Safe tasks, downloads, and vector memory search.</span>
-          </div>
-          <div class="sub-plane elevated">
-            <strong>Host Daemon (:8081)</strong>
-            <span>Administrative operations requiring physical confirmation.</span>
+        <!-- PowerShell One-Liner -->
+        <div class="action-card-col">
+          <div class="terminal-install-card">
+            <div class="term-title">POWERSHELL ONE-LINE INSTALLER</div>
+            <div class="term-command-row">
+              <code id="cliCommand">irm https://raw.githubusercontent.com/PTejasKr/ANDA/main/install.ps1 | iex</code>
+              <button class="btn-copy-term" id="btnCopyCmd" title="Copy to clipboard">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <span id="copyText">Copy</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
 
-  <!-- Gemma Engine Configuration Section -->
-  <section class="gemma-section" id="gemma">
-    <div class="section-header">
-      <span class="section-tag">INFERENCE ENGINE</span>
-      <h2 class="section-title">Run Free. Run Local.</h2>
-      <p class="section-desc">Choose your inference provider with zero subscription fees.</p>
-    </div>
-
-    <div class="gemma-cards-grid">
-      <div class="gemma-card highlight">
-        <div class="gemma-card-header">
-          <span class="gemma-pill">LOCAL DEFAULT</span>
-          <h3>Local Ollama (Gemma 2B / 7B)</h3>
-        </div>
-        <p>100% offline execution on your device. Complete privacy with zero latency.</p>
-        <div class="code-box">
-          <code>ollama run gemma2:2b</code>
-        </div>
-        <ul class="check-list">
-          <li>✓ 100% offline execution</li>
-          <li>✓ Zero API keys required</li>
-          <li>✓ Auto-detected on port 11434</li>
-        </ul>
-      </div>
-
-      <div class="gemma-card">
-        <div class="gemma-card-header">
-          <span class="gemma-pill">FREE CLOUD TIER</span>
-          <h3>Cloudflare Workers AI</h3>
-        </div>
-        <p>Serverless edge inference using Gemma 7B with zero local RAM usage.</p>
-        <div class="code-box">
-          <code>DEFAULT_AI_MODEL = "@cf/google/gemma-7b-it"</code>
-        </div>
-        <ul class="check-list">
-          <li>✓ Zero local compute overhead</li>
-          <li>✓ Free tier out of the box</li>
-          <li>✓ Sub-second edge inference</li>
-        </ul>
-      </div>
-
-      <div class="gemma-card">
-        <div class="gemma-card-header">
-          <span class="gemma-pill">LOCAL GUI</span>
-          <h3>LM Studio / Local GGUF</h3>
-        </div>
-        <p>GPU-accelerated local inference compatible with any quantized GGUF model.</p>
-        <div class="code-box">
-          <code>http://127.0.0.1:1234/v1/models</code>
-        </div>
-        <ul class="check-list">
-          <li>✓ CUDA / DirectML accelerated</li>
-          <li>✓ Compatible with all GGUF builds</li>
-          <li>✓ Standard OpenAI endpoint</li>
-        </ul>
+      <div class="download-proof-tags">
+        <span>✓ Auto-starts with Windows</span>
+        <span>✓ Zero-telemetry local runtime</span>
+        <span>✓ 100% Free & Open Source</span>
       </div>
     </div>
   </section>
 
-  <!-- Settings & Informatics Guide -->
-  <section class="settings-section" id="settings">
-    <div class="section-header">
-      <span class="section-tag">CONFIGURATION</span>
-      <h2 class="section-title">Settings & Controls</h2>
-      <p class="section-desc">Key bindings and system permissions.</p>
-    </div>
-
-    <div class="settings-accordion">
-      <div class="accordion-item">
-        <div class="accordion-header">
-          <span class="accordion-title">⌨️ Global Shortcut</span>
-          <span class="accordion-toggle">+</span>
-        </div>
-        <div class="accordion-content">
-          <p>
-            Press <strong>Left Ctrl + Windows Key</strong> anywhere in Windows to toggle the HUD. Press <kbd class="kbd-pill">Escape</kbd> or click outside to dismiss.
-          </p>
-        </div>
-      </div>
-
-      <div class="accordion-item">
-        <div class="accordion-header">
-          <span class="accordion-title">🎙️ Microphone Access</span>
-          <span class="accordion-toggle">+</span>
-        </div>
-        <div class="accordion-content">
-          <p>
-            Click the mic orb or speak naturally. Uses standard Windows audio input with automatic silence detection and instant transcription.
-          </p>
-        </div>
-      </div>
-
-      <div class="accordion-item">
-        <div class="accordion-header">
-          <span class="accordion-title">🛡️ Security & Approvals</span>
-          <span class="accordion-toggle">+</span>
-        </div>
-        <div class="accordion-content">
-          <p>
-            Destructive actions (disk operations, hardware modifications) trigger a confirmation dialog before proceeding.
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Live Health Monitor Strip -->
-  <section class="health-strip">
-    <div class="health-container">
-      <div class="health-title">LIVE SYSTEM HEALTH</div>
-      <div class="health-grid">
-        <div class="health-node" id="nodeOrchestrator">
-          <span class="node-dot"></span>
-          <span class="node-label">Go Orchestrator (:8080)</span>
-          <span class="node-status" id="statusOrch">Checking...</span>
-        </div>
-        <div class="health-node" id="nodeWorker">
-          <span class="node-dot"></span>
-          <span class="node-label">Worker Plane (:50051)</span>
-          <span class="node-status" id="statusWorker">Checking...</span>
-        </div>
-        <div class="health-node" id="nodeDaemon">
-          <span class="node-dot"></span>
-          <span class="node-label">Elevated Daemon (:8081)</span>
-          <span class="node-status" id="statusDaemon">Checking...</span>
-        </div>
-        <div class="health-node" id="nodeGemma">
-          <span class="node-dot"></span>
-          <span class="node-label">Gemma Brain Provider</span>
-          <span class="node-status" id="statusGemma">Gemma 3 Active</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="site-footer">
-    <div class="footer-container">
+  <!-- 7. Minimalist Footer (Pinterest Styling) -->
+  <footer class="footer-wrapper">
+    <div class="footer-inner">
       <div class="footer-left">
-        <div class="footer-brand">ANDA</div>
-        <p class="footer-copy">Autonomous Native Desktop Assistant for Windows. Open Source.</p>
+        <span class="footer-brand">anda°</span>
+        <span class="footer-copy">© 2026 ANDA. Autonomous Native Desktop Assistant.</span>
       </div>
-      <div class="footer-links">
-        <a href="https://github.com/PTejasKr/ANDA" target="_blank" rel="noopener">GitHub Repository</a>
-        <a href="/anda.exe" download="anda.exe">Download anda.exe</a>
-        <a href="#quickstart">Install Command</a>
+      <div class="footer-center">
+        <kbd class="footer-kbd">Left Ctrl</kbd> + <kbd class="footer-kbd">Win</kbd> to summon anywhere
+      </div>
+      <div class="footer-right">
+        <a href="#hero" class="footer-link">Back to top ↑</a>
       </div>
     </div>
   </footer>

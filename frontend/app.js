@@ -183,66 +183,217 @@
     return { uri: "ms-settings:", name: "Windows System Settings" };
   }
 
-  function fallbackDemoExecution(prompt) {
-    const lower = prompt.toLowerCase();
-    let action = 'execute';
-    let msg = 'Executed in background by Gemma engine.';
+    // --------------------------------------------------------------------------
+    // Spotlight Search Engine (Apps, Games, Math, Settings, Web Fallback)
+    // --------------------------------------------------------------------------
+    const spotlightOverlay = document.getElementById('spotlightOverlay');
+    const spotlightList = document.getElementById('spotlightList');
+    let spotlightResults = [];
+    let spotlightSelectedIdx = 0;
 
-    if (lower.includes('setting') || lower.includes('sound') || lower.includes('volume') || lower.includes('display') || lower.includes('bluetooth') || lower.includes('wifi') || lower.includes('task manager')) {
-      const setting = resolveSystemSetting(prompt);
-      action = 'open_setting';
-      try { window.location.href = setting.uri; } catch (e) {}
-      demoStatusText.innerHTML = `⚙️ Done [${action}]: Launched <a href="${setting.uri}" style="color:#38BDF8;text-decoration:underline;font-weight:600;">${setting.name} (${setting.uri})</a>`;
-      demoStatusText.style.color = '#10B981';
-      return;
-    } else if (lower.includes('on the internet') || lower.startsWith('search ') || lower.startsWith('google ') || lower.startsWith('look up ')) {
-      const search = resolveWebSearch(prompt);
-      action = 'web_search';
-      try { window.open(search.url, '_blank'); } catch (e) {}
-      demoStatusText.innerHTML = `🔍 Done [${action}]: Searched internet for "${search.query}" • <a href="${search.url}" target="_blank" style="color:#38BDF8;text-decoration:underline;font-weight:600;">View Results ➔</a>`;
-      demoStatusText.style.color = '#10B981';
-      return;
-    } else if (lower.startsWith('open ') || lower.startsWith('go to ') || lower.startsWith('visit ') || lower.includes('.com') || lower.includes('youtube') || lower.includes('browser')) {
-      const targetUrl = resolveBrowserUrl(prompt);
-      action = 'open_browser';
-      try { window.open(targetUrl, '_blank'); } catch (e) {}
-      demoStatusText.innerHTML = `🚀 Done [${action}]: Opened <a href="${targetUrl}" target="_blank" style="color:#38BDF8;text-decoration:underline;font-weight:600;">${targetUrl}</a> [Click if popup blocked]`;
-      demoStatusText.style.color = '#10B981';
-      return;
-    } else if (lower.includes('stage') || lower.includes('categorize') || lower.includes('download')) {
-      action = 'stage_files';
-      msg = 'Downloads organized and indexed into categorized storage.';
-    } else if (lower.includes('memory') || lower.includes('recall')) {
-      action = 'query_memory';
-      msg = 'Retrieved relevant context from vector memory.';
-    } else if (lower.includes('flash') || lower.includes('usb') || lower.includes('format')) {
-      action = 'flash_usb';
-      msg = 'Administrative action paused for physical confirmation.';
-    } else if (lower.includes('receipt') || lower.includes('extract')) {
-      action = 'extract_data';
-      msg = 'Document parsed and indexed successfully.';
+    const SYSTEM_INDEXED_ITEMS = [
+      { category: 'GAME', title: 'Cyberpunk 2077', sub: 'C:\\ProgramData\\...\\Cyberpunk 2077.lnk', action: 'launch_game', target: 'Cyberpunk 2077' },
+      { category: 'APP', title: 'Visual Studio Code', sub: 'Code.exe • Development IDE', action: 'launch_app', target: 'Visual Studio Code' },
+      { category: 'APP', title: 'Google Chrome', sub: 'chrome.exe • Web Browser', action: 'launch_app', target: 'Google Chrome' },
+      { category: 'APP', title: 'Calculator', sub: 'calc • Windows Native Tool', action: 'launch_app', target: 'calc' },
+      { category: 'SETTING', title: 'Sound & Audio Settings', sub: 'ms-settings:sound', action: 'open_setting', target: 'ms-settings:sound' },
+      { category: 'SETTING', title: 'Task Manager', sub: 'taskmgr • System Resource Monitor', action: 'open_setting', target: 'taskmgr' },
+      { category: 'FILE', title: 'Financial_Report_Q4.xlsx', sub: 'Documents\\Financials', action: 'open_file', target: 'Financial_Report_Q4.xlsx' },
+    ];
+
+    function evalMath(expr) {
+      const clean = expr.trim().replace(/\^/g, '**');
+      const pct = clean.match(/^(\d+(?:\.\d+)?)\s*%\s*(?:of)?\s*(\d+(?:\.\d+)?)$/i);
+      if (pct) {
+        return (parseFloat(pct[1]) / 100.0) * parseFloat(pct[2]);
+      }
+      if (!/^[\d\s\+\-\*\/\(\)\.\%]+$/.test(clean) && !clean.includes('sqrt')) return null;
+      try {
+        const sanitized = clean.replace(/sqrt\(([^)]+)\)/g, 'Math.sqrt($1)');
+        // Safe evaluation of pure numbers and arithmetic operators
+        const fn = new Function(`return (${sanitized})`);
+        const res = fn();
+        if (typeof res === 'number' && !isNaN(res) && isFinite(res)) {
+          return res;
+        }
+      } catch (e) {}
+      return null;
     }
 
-    demoStatusText.textContent = `✅ Done [${action}]: ${msg}`;
-    demoStatusText.style.color = '#10B981';
+    function querySpotlight(q) {
+      const query = q.trim();
+      if (!query) return [];
+      const lower = query.toLowerCase();
+      const results = [];
 
-    setTimeout(() => {
-      demoStatusText.textContent = 'Ready • Press [Left Ctrl + Win] anywhere to summon';
-      demoStatusText.style.color = '#64748B';
-    }, 4500);
-  }
-
-  if (demoSendBtn && demoInput) {
-    demoSendBtn.addEventListener('click', () => {
-      executeDemoPrompt(demoInput.value);
-    });
-
-    demoInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        executeDemoPrompt(demoInput.value);
+      // 1. Math calculation
+      const mathVal = evalMath(query);
+      if (mathVal !== null) {
+        const formatted = Number.isInteger(mathVal) ? mathVal.toString() : mathVal.toFixed(3).replace(/\.?0+$/, '');
+        results.push({
+          category: 'MATH',
+          title: `${query} = ${formatted}`,
+          sub: 'Instant Calculation Result (Press Enter to Copy)',
+          action: 'math',
+          target: formatted
+        });
       }
-    });
-  }
+
+      // 2. Apps & Games
+      let cleanTarget = lower;
+      for (const p of ['open a game ', 'open the game ', 'play the game ', 'launch the game ', 'open ', 'play ', 'launch ', 'start ']) {
+        if (cleanTarget.startsWith(p)) {
+          cleanTarget = cleanTarget.slice(p.length).trim();
+          break;
+        }
+      }
+
+      for (const item of SYSTEM_INDEXED_ITEMS) {
+        const itemLower = item.title.toLowerCase();
+        if (itemLower === cleanTarget || itemLower.includes(cleanTarget) || cleanTarget.includes(itemLower)) {
+          results.push(item);
+        }
+      }
+
+      // 3. Web Search Fallback
+      results.push({
+        category: 'WEB',
+        title: `Search the web for "${query}"`,
+        sub: 'Google Search in Default Browser',
+        action: 'web_search',
+        target: `https://www.google.com/search?q=${encodeURIComponent(query)}`
+      });
+
+      return results.slice(0, 5);
+    }
+
+    function renderSpotlightResults() {
+      if (!spotlightOverlay || !spotlightList) return;
+      spotlightList.innerHTML = '';
+
+      if (spotlightResults.length === 0) {
+        spotlightOverlay.classList.remove('active');
+        return;
+      }
+
+      spotlightOverlay.classList.add('active');
+
+      spotlightResults.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.className = `spotlight-item ${idx === spotlightSelectedIdx ? 'selected' : ''}`;
+        row.innerHTML = `
+          <div class="spotlight-item-left">
+            <span class="spotlight-cat-badge">${item.category}</span>
+            <span class="spotlight-item-title">${item.title}</span>
+          </div>
+          <span class="spotlight-item-sub">${item.sub}</span>
+        `;
+        row.addEventListener('click', () => {
+          spotlightSelectedIdx = idx;
+          executeSpotlightSelection(item);
+        });
+        spotlightList.appendChild(row);
+      });
+    }
+
+    function executeSpotlightSelection(item) {
+      if (!item) return;
+      spotlightOverlay.classList.remove('active');
+      spotlightResults = [];
+
+      if (item.action === 'launch_game') {
+        demoStatusText.innerHTML = `🎮 <strong>Launched Game:</strong> ${item.title} (${item.sub})`;
+        demoStatusText.style.color = '#10B981';
+      } else if (item.action === 'launch_app') {
+        demoStatusText.innerHTML = `🚀 <strong>Launched Application:</strong> ${item.title}`;
+        demoStatusText.style.color = '#10B981';
+      } else if (item.action === 'open_setting') {
+        try { window.location.href = item.target; } catch (e) {}
+        demoStatusText.innerHTML = `⚙️ <strong>Opened System Setting:</strong> <a href="${item.target}" style="color:#38BDF8;text-decoration:underline;">${item.title}</a>`;
+        demoStatusText.style.color = '#10B981';
+      } else if (item.action === 'math') {
+        try { navigator.clipboard.writeText(item.target); } catch (e) {}
+        demoStatusText.innerHTML = `🔢 <strong>Calculation:</strong> ${item.title} (Copied)`;
+        demoStatusText.style.color = '#10B981';
+      } else if (item.action === 'web_search') {
+        try { window.open(item.target, '_blank'); } catch (e) {}
+        demoStatusText.innerHTML = `🌐 <strong>Web Search:</strong> <a href="${item.target}" target="_blank" style="color:#38BDF8;text-decoration:underline;">${item.title} ↗</a>`;
+        demoStatusText.style.color = '#10B981';
+      } else {
+        demoStatusText.innerHTML = `✅ <strong>Executed:</strong> ${item.title}`;
+        demoStatusText.style.color = '#10B981';
+      }
+
+      setTimeout(() => {
+        demoStatusText.textContent = 'Ready • Press [Left Ctrl + Win] anywhere to summon';
+        demoStatusText.style.color = '#64748B';
+      }, 5000);
+    }
+
+    function fallbackDemoExecution(prompt) {
+      const q = (prompt || '').trim();
+      if (!q) return;
+
+      const matches = querySpotlight(q);
+      if (matches && matches.length > 0) {
+        executeSpotlightSelection(matches[0]);
+        return;
+      }
+
+      const res = resolveWebSearch(q);
+      try { window.open(res.url, '_blank'); } catch (e) {}
+      demoStatusText.innerHTML = `🌐 <strong>Search Executed:</strong> <a href="${res.url}" target="_blank" style="color:#38BDF8;text-decoration:underline;">${res.query} ↗</a>`;
+      demoStatusText.style.color = '#10B981';
+      setTimeout(() => {
+        demoStatusText.textContent = 'Ready • Press [Left Ctrl + Win] anywhere to summon';
+        demoStatusText.style.color = '#64748B';
+      }, 5000);
+    }
+
+    if (demoInput) {
+      demoInput.addEventListener('input', () => {
+        const q = demoInput.value.trim();
+        spotlightResults = querySpotlight(q);
+        spotlightSelectedIdx = 0;
+        renderSpotlightResults();
+      });
+
+      demoInput.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') {
+          if (spotlightResults.length > 0) {
+            e.preventDefault();
+            spotlightSelectedIdx = (spotlightSelectedIdx + 1) % spotlightResults.length;
+            renderSpotlightResults();
+          }
+        } else if (e.key === 'ArrowUp') {
+          if (spotlightResults.length > 0) {
+            e.preventDefault();
+            spotlightSelectedIdx = (spotlightSelectedIdx - 1 + spotlightResults.length) % spotlightResults.length;
+            renderSpotlightResults();
+          }
+        } else if (e.key === 'Escape') {
+          spotlightOverlay.classList.remove('active');
+          spotlightResults = [];
+        } else if (e.key === 'Enter') {
+          if (spotlightResults.length > 0 && spotlightSelectedIdx < spotlightResults.length) {
+            e.preventDefault();
+            executeSpotlightSelection(spotlightResults[spotlightSelectedIdx]);
+          } else {
+            executeDemoPrompt(demoInput.value);
+          }
+        }
+      });
+    }
+
+    if (demoSendBtn) {
+      demoSendBtn.addEventListener('click', () => {
+        if (spotlightResults.length > 0 && spotlightSelectedIdx < spotlightResults.length) {
+          executeSpotlightSelection(spotlightResults[spotlightSelectedIdx]);
+        } else {
+          executeDemoPrompt(demoInput.value);
+        }
+      });
+    }
 
   // --------------------------------------------------------------------------
   // Real Seamless Speech-to-Text Engine (Web Speech API + MediaRecorder Fallback)
