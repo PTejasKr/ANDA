@@ -1,4 +1,4 @@
-module omni-operator
+module anda
 
 go 1.26.0
 

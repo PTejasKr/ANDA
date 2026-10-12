@@ -11,8 +11,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -258,6 +260,58 @@ func (s *OrchestratorServer) handleCommand(w http.ResponseWriter, r *http.Reques
 			"route":   route,
 			"memory":  ragResult,
 			"message": "Retrieved relevant context from shared vector memory.",
+		})
+
+	case DestBrowser, DestWebSearch:
+		targetURL := route.TargetURL
+		if targetURL == "" {
+			targetURL = "https://www.google.com"
+		}
+
+		// Asynchronously launch on interactive desktop if available
+		go func(u string) {
+			if runtime.GOOS == "windows" {
+				_ = exec.Command("cmd", "/c", "start", "", u).Start()
+			} else if runtime.GOOS == "darwin" {
+				_ = exec.Command("open", u).Start()
+			} else if runtime.GOOS == "linux" {
+				_ = exec.Command("xdg-open", u).Start()
+			}
+		}(targetURL)
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":      "success",
+			"route":       route,
+			"action_type": string(route.Destination),
+			"target_url":  targetURL,
+			"message":     fmt.Sprintf("Dispatched action: opened %s in browser.", targetURL),
+		})
+
+	case DestSystemSetting:
+		uri := route.SystemURI
+		if uri == "" {
+			uri = "ms-settings:"
+		}
+
+		// Asynchronously launch Windows setting if on Windows
+		go func(u string) {
+			if runtime.GOOS == "windows" {
+				if strings.HasPrefix(u, "ms-settings:") {
+					_ = exec.Command("cmd", "/c", "start", u).Start()
+				} else {
+					_ = exec.Command(u).Start()
+				}
+			}
+		}(uri)
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":      "success",
+			"route":       route,
+			"action_type": "SYSTEM_SETTING",
+			"system_uri":  uri,
+			"message":     fmt.Sprintf("Dispatched action: opened %s on system.", uri),
 		})
 
 	case DestWorker:

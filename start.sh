@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-echo "[*] Initializing Omni-Operator Cloud Container..."
+echo "[*] Initializing ANDA Cloud Container..."
 
 # Ensure storage hierarchy is present
 mkdir -p /app/storage/ingest \

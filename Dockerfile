@@ -1,4 +1,4 @@
-# Production Dockerfile: Omni-Operator Orchestrator & Python Data Worker
+# Production Dockerfile: ANDA Orchestrator & Python Data Worker
 FROM python:3.12-slim
 WORKDIR /app
 

@@ -15,6 +15,9 @@ import io
 import threading
 import urllib.request
 import urllib.error
+import urllib.parse
+import webbrowser
+import subprocess
 import ctypes
 from ctypes import wintypes
 import tkinter as tk
@@ -306,15 +309,34 @@ class AndaHUDApp:
         self.recorded_frames = []
         self.canvas.itemconfig(self.mic_circle_id, fill="#0284C7", outline="#38BDF8")
         self.canvas.itemconfig(self.mic_icon_id, fill="#FFFFFF")
-        self.set_status("🎙️ Listening to microphone... Click mic again to send", "#38BDF8")
+        self.set_status("🎙️ Listening... Speak your instruction (auto-enters on pause)", "#38BDF8")
         self.animate_mic_pulse(True)
 
         def record_thread():
             try:
                 fs = 16000
+                has_spoken = False
+                silence_start = None
+                silence_timeout = 1.3  # Auto-submit after 1.3s silence following speech
+                speech_threshold = 400 # Amplitude energy threshold
+
                 def callback(indata, frames, time_info, status):
-                    if self.is_recording:
-                        self.recorded_frames.append(indata.copy())
+                    nonlocal has_spoken, silence_start
+                    if not self.is_recording:
+                        return
+                    self.recorded_frames.append(indata.copy())
+
+                    energy = float(np.abs(indata).mean())
+                    if energy > speech_threshold:
+                        has_spoken = True
+                        silence_start = None
+                    elif has_spoken:
+                        now = time.time()
+                        if silence_start is None:
+                            silence_start = now
+                        elif now - silence_start >= silence_timeout:
+                            # User finished speech -> auto-stop and execute seamlessly
+                            self.root.after(0, self.stop_voice)
 
                 with sd.InputStream(samplerate=fs, channels=1, dtype='int16', callback=callback):
                     while self.is_recording:
@@ -326,11 +348,13 @@ class AndaHUDApp:
         threading.Thread(target=record_thread, daemon=True).start()
 
     def stop_voice(self):
+        if not self.is_recording:
+            return
         self.is_recording = False
         self.animate_mic_pulse(False)
         self.canvas.itemconfig(self.mic_circle_id, fill="#1E293B", outline="#334155")
         self.canvas.itemconfig(self.mic_icon_id, fill="#38BDF8")
-        self.set_status("⚡ Processing speech audio...", "#F59E0B")
+        self.set_status("⚡ Transcribing speech to text...", "#F59E0B")
 
         if not self.recorded_frames:
             self.set_status("⚡ No audio captured. Try speaking again.", "#94A3B8")
@@ -448,22 +472,100 @@ class AndaHUDApp:
         if not res:
             try:
                 req_data = json.dumps({"prompt": prompt}).encode('utf-8')
-                req = urllib.request.Request("https://anda-omni-operator.fly.dev/api/orchestrator/command", data=req_data, headers={"Content-Type": "application/json"})
+                req = urllib.request.Request("https://project-anda.fly.dev/api/orchestrator/command", data=req_data, headers={"Content-Type": "application/json"})
                 with urllib.request.urlopen(req, timeout=8.0) as resp:
                     res = json.loads(resp.read().decode('utf-8'))
             except Exception:
                 pass
 
         # 4. Fallback to local semantic reasoning (zero cost, zero failure)
-        if not res:
+        target_url = res.get("target_url") if res else None
+        system_uri = res.get("system_uri") if res else None
+
+        if not res or (not target_url and not system_uri):
             lower = prompt.lower()
-            if "stage" in lower or "organize" in lower:
+            if any(k in lower for k in ["setting", "sound", "volume", "display", "bluetooth", "wifi", "task manager", "calculator", "control panel"]):
+                action = "open_setting"
+                if any(k in lower for k in ["sound", "volume", "audio"]):
+                    system_uri = "ms-settings:sound"
+                    msg = "Opened Windows Sound & Audio Settings."
+                elif any(k in lower for k in ["display", "screen", "resolution", "brightness"]):
+                    system_uri = "ms-settings:display"
+                    msg = "Opened Windows Display Settings."
+                elif any(k in lower for k in ["wifi", "wi-fi", "network", "internet"]):
+                    system_uri = "ms-settings:network-wifi"
+                    msg = "Opened Windows Network & Wi-Fi Settings."
+                elif any(k in lower for k in ["bluetooth", "devices"]):
+                    system_uri = "ms-settings:bluetooth"
+                    msg = "Opened Windows Bluetooth & Devices."
+                elif any(k in lower for k in ["task manager", "taskmgr"]):
+                    system_uri = "taskmgr"
+                    msg = "Opened Windows Task Manager."
+                elif any(k in lower for k in ["calculator", "calc"]):
+                    system_uri = "calc"
+                    msg = "Opened Windows Calculator."
+                elif "control panel" in lower:
+                    system_uri = "control"
+                    msg = "Opened Windows Control Panel."
+                else:
+                    system_uri = "ms-settings:"
+                    msg = "Opened Windows System Settings."
+            elif any(k in lower for k in ["on the internet", "search", "google", "look up"]):
+                action = "web_search"
+                clean = lower
+                for p in ["search something on the internet for ", "search something on the internet about ", "search something on the internet", "search the internet for ", "search the internet", "search on the internet for ", "search on the internet", "search for ", "search ", "google ", "look up ", "find "]:
+                    if clean.startswith(p):
+                        clean = clean[len(p):].strip()
+                        break
+                for sfx in [" on the internet", " in google", " on google"]:
+                    if clean.endswith(sfx):
+                        clean = clean[:-len(sfx)].strip()
+                clean = clean.strip(".!?,; ") or "technology trends"
+                target_url = f"https://www.google.com/search?q={urllib.parse.quote_plus(clean)}"
+                msg = f"Searched the internet for '{clean}' and opened browser."
+            elif any(lower.startswith(p) for p in ["open ", "go to ", "visit ", "browse ", "launch "]) or any(ext in lower for ext in [".com", ".org", ".io", ".net", "youtube", "browser"]):
+                action = "open_browser"
+                clean = lower
+                for p in ["open a browser and go to ", "open a browser and visit ", "open browser and go to ", "open browser to ", "open a browser", "open browser", "navigate to ", "go to ", "visit ", "browse ", "launch ", "open "]:
+                    if clean.startswith(p):
+                        clean = clean[len(p):].strip()
+                        break
+                clean = clean.strip(".!?,; ")
+                known = {
+                    "youtube": "https://www.youtube.com",
+                    "google": "https://www.google.com",
+                    "github": "https://github.com",
+                    "reddit": "https://www.reddit.com",
+                    "twitter": "https://x.com",
+                    "x": "https://x.com",
+                    "dribbble": "https://dribbble.com",
+                    "wikipedia": "https://www.wikipedia.org",
+                    "gmail": "https://mail.google.com",
+                    "netflix": "https://www.netflix.com",
+                    "spotify": "https://open.spotify.com",
+                    "chatgpt": "https://chatgpt.com",
+                    "amazon": "https://www.amazon.com",
+                }
+                if clean in known:
+                    target_url = known[clean]
+                elif clean.startswith("http://") or clean.startswith("https://"):
+                    target_url = clean
+                elif "." in clean and " " not in clean:
+                    target_url = f"https://{clean}"
+                elif " " not in clean and clean:
+                    target_url = f"https://www.{clean}.com"
+                elif not clean:
+                    target_url = "https://www.google.com"
+                else:
+                    target_url = f"https://www.google.com/search?q={urllib.parse.quote_plus(clean)}"
+                msg = f"Opened {target_url} in your default browser."
+            elif "stage" in lower or "organize" in lower:
                 action = "stage_files"
                 msg = "Organized local downloads and verified file categories."
             elif "flash" in lower:
                 action = "flash_usb"
                 msg = "Elevated operation scheduled (requires physical confirmation)."
-            elif "memory" in lower or "search" in lower:
+            elif "memory" in lower or "recall" in lower:
                 action = "query_memory"
                 msg = "Queried vector memory context successfully."
             else:
@@ -473,8 +575,25 @@ class AndaHUDApp:
             res = {
                 "status": "success",
                 "route": {"action": action},
+                "target_url": target_url,
+                "system_uri": system_uri,
                 "message": msg,
             }
+
+        # Physical execution of real actions on Windows
+        if target_url:
+            try:
+                webbrowser.open(target_url)
+            except Exception:
+                try:
+                    os.system(f'start "" "{target_url}"')
+                except Exception:
+                    pass
+        elif system_uri:
+            try:
+                os.system(f'start {system_uri}')
+            except Exception:
+                pass
 
         route = res.get("route", {})
         action = route.get("action", "execute") if isinstance(route, dict) else "execute"
@@ -493,7 +612,7 @@ class AndaHUDApp:
         self.root.after(4000, lambda: self.set_status("⚡ Ready • Press [Left Ctrl + Win] to toggle", "#64748B"))
 
     def ensure_backend_alive(self):
-        for ep in [SYSTEM_STATUS_API, "http://127.0.0.1:50051/health", "https://anda-omni-operator.fly.dev/health"]:
+        for ep in [SYSTEM_STATUS_API, "http://127.0.0.1:50051/health", "https://project-anda.fly.dev/health"]:
             try:
                 with urllib.request.urlopen(ep, timeout=1.5) as resp:
                     if resp.status == 200:

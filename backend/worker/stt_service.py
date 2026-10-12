@@ -8,6 +8,8 @@ from __future__ import annotations
 import base64
 import io
 import os
+import shutil
+import subprocess
 import tempfile
 from typing import Any, Dict, Optional
 
@@ -32,14 +34,33 @@ class STTService:
 
         # 1. Google Speech Recognition Engine (GBoard free tier endpoint)
         if self.recognizer:
+            tmp_path = ""
+            converted_tmp = ""
             try:
-                # Write to temp file for wav conversion
-                with tempfile.NamedTemporaryFile(suffix=f".{format_hint}", delete=False) as tmp:
+                # Write to temp file
+                clean_format = (format_hint or "wav").lstrip(".")
+                with tempfile.NamedTemporaryFile(suffix=f".{clean_format}", delete=False) as tmp:
                     tmp.write(audio_data)
                     tmp_path = tmp.name
 
+                target_wav = tmp_path
+                # Convert WebM / OGG / MP3 to 16kHz WAV using ffmpeg if available
+                if clean_format != "wav" and shutil.which("ffmpeg"):
+                    converted_tmp = tmp_path + ".converted.wav"
+                    try:
+                        subprocess.run(
+                            ["ffmpeg", "-y", "-i", tmp_path, "-vn", "-ar", "16000", "-ac", "1", converted_tmp],
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                            check=True,
+                            timeout=10,
+                        )
+                        target_wav = converted_tmp
+                    except Exception:
+                        target_wav = tmp_path
+
                 try:
-                    with sr.AudioFile(tmp_path) as source:
+                    with sr.AudioFile(target_wav) as source:
                         audio = self.recognizer.record(source)
                         text = self.recognizer.recognize_google(audio)
                         return {
@@ -49,8 +70,16 @@ class STTService:
                             "success": True,
                         }
                 finally:
-                    if os.path.exists(tmp_path):
-                        os.remove(tmp_path)
+                    if tmp_path and os.path.exists(tmp_path):
+                        try:
+                            os.remove(tmp_path)
+                        except Exception:
+                            pass
+                    if converted_tmp and os.path.exists(converted_tmp):
+                        try:
+                            os.remove(converted_tmp)
+                        except Exception:
+                            pass
             except sr.UnknownValueError:
                 return {
                     "text": "",

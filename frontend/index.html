@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ANDA | Autonomous Native Desktop Assistant for Windows</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="site-body">
@@ -131,7 +130,7 @@
           <!-- THE PILL HUD (Interactive Simulation) -->
           <div class="anda-native-pill" id="demoPill">
             <!-- 1. Microphone Orb -->
-            <button class="pill-mic-orb" id="demoMicBtn" title="Click to simulate Voice Input">
+            <button class="pill-mic-orb" id="demoMicBtn" title="Click to speak (Live Speech-to-Text with auto-enter)">
               <div class="mic-glow-ring" id="demoMicGlow"></div>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                 <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
@@ -158,13 +157,51 @@
             <span class="feedback-text" id="demoStatusText">Ready • Press [Left Ctrl + Win] anywhere to summon</span>
           </div>
 
-          <!-- Preset prompt pills for interactive testing -->
+          <!-- Preset prompt pills for interactive testing (BrightPath AI Action Suite) -->
           <div class="prompt-chips">
-            <span class="prompt-chip-label">Try interactive prompts:</span>
-            <button class="chip-btn" data-prompt="Stage and categorize my downloads">📁 Stage downloads</button>
-            <button class="chip-btn" data-prompt="Search memory for Q4 cloud expenses">🔍 Recall memory</button>
-            <button class="chip-btn" data-prompt="Flash Linux USB on drive E:">🛡️ Flash USB (HITL)</button>
-            <button class="chip-btn" data-prompt="Analyze receipt_aws_cloud_infra.png">🧾 Extract receipt</button>
+            <span class="prompt-chip-label">BRIGHTPATH QUICK ACTIONS:</span>
+            <button class="chip-btn" data-prompt="open youtube">🌐 Open YouTube</button>
+            <button class="chip-btn" data-prompt="search quantum computing on the internet">🔍 Search Internet</button>
+            <button class="chip-btn" data-prompt="open sound settings">⚙️ Sound Settings</button>
+            <button class="chip-btn" data-prompt="open display settings">🖥️ Display Settings</button>
+            <button class="chip-btn" data-prompt="stage and categorize my downloads">📁 Stage Downloads</button>
+            <button class="chip-btn" data-prompt="recall memory for Q4 cloud expenses">🧠 Recall Memory</button>
+            <button class="chip-btn" data-prompt="flash Linux USB on drive E:">🛡️ Flash USB (HITL)</button>
+          </div>
+
+          <!-- BrightPath AI Interactive Progress Pathway -->
+          <div class="brightpath-track">
+            <div class="brightpath-step active">
+              <span class="step-num">01</span>
+              <div class="step-meta">
+                <strong>INTENT PERCEPTION</strong>
+                <span>[Ctrl+Win] Hardware Hook & Speech STT</span>
+              </div>
+            </div>
+            <div class="brightpath-line"></div>
+            <div class="brightpath-step active">
+              <span class="step-num">02</span>
+              <div class="step-meta">
+                <strong>HOLISTIC AUTOCOMPLETE</strong>
+                <span>Intelligent URL, HTTPS, .com & Settings Resolver</span>
+              </div>
+            </div>
+            <div class="brightpath-line"></div>
+            <div class="brightpath-step active">
+              <span class="step-num">03</span>
+              <div class="step-meta">
+                <strong>AUTONOMOUS ACTION</strong>
+                <span>Browser Launch, Search Engine, Native Win32</span>
+              </div>
+            </div>
+            <div class="brightpath-line"></div>
+            <div class="brightpath-step active">
+              <span class="step-num">04</span>
+              <div class="step-meta">
+                <strong>ZERO-TRUST HITL</strong>
+                <span>60s Human-Verified Administrative Tokens</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -293,7 +330,7 @@
             <span>Extracts data, stages files, computes RAG embeddings. No system privileges.</span>
           </div>
           <div class="sub-plane elevated">
-            <strong>Elevated Daemon (\\.\pipe\omni_daemon_ipc)</strong>
+            <strong>Elevated Daemon (\\.\pipe\anda_daemon_ipc)</strong>
             <span>Runs as Administrator. Executes disk flash & OS updates only after physical HITL approval.</span>
           </div>
         </div>
