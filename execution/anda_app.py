@@ -405,7 +405,7 @@ class AndaHUDApp:
             # 2. If local SR didn't succeed, try Orchestrator or Worker API
             if not text:
                 req_data = json.dumps({"audio_b64": b64_audio, "audio_data": b64_audio}).encode('utf-8')
-                for ep in [TRANSCRIBE_API, "http://127.0.0.1:50051/api/stt/transcribe", "https://anda-omni-operator.fly.dev/api/ai/stt"]:
+                for ep in [TRANSCRIBE_API, "http://127.0.0.1:50051/api/stt/transcribe", "https://project-anda.fly.dev/api/ai/stt"]:
                     try:
                         req = urllib.request.Request(ep, data=req_data, headers={"Content-Type": "application/json"})
                         with urllib.request.urlopen(req, timeout=5.0) as resp:
@@ -479,8 +479,15 @@ class AndaHUDApp:
                 pass
 
         # 4. Fallback to local semantic reasoning (zero cost, zero failure)
-        target_url = res.get("target_url") if res else None
-        system_uri = res.get("system_uri") if res else None
+        target_url = None
+        system_uri = None
+        if res:
+            target_url = res.get("target_url")
+            system_uri = res.get("system_uri")
+            if not target_url and isinstance(res.get("route"), dict):
+                target_url = res["route"].get("target_url")
+            if not system_uri and isinstance(res.get("route"), dict):
+                system_uri = res["route"].get("system_uri")
 
         if not res or (not target_url and not system_uri):
             lower = prompt.lower()
@@ -582,18 +589,26 @@ class AndaHUDApp:
 
         # Physical execution of real actions on Windows
         if target_url:
+            print(f"[ANDA PHYSICAL EXECUTION] Launching URL: {target_url}", flush=True)
             try:
-                webbrowser.open(target_url)
+                os.startfile(target_url)
             except Exception:
                 try:
-                    os.system(f'start "" "{target_url}"')
+                    webbrowser.open(target_url)
                 except Exception:
-                    pass
+                    try:
+                        subprocess.Popen(f'cmd /c start "" "{target_url}"', shell=True)
+                    except Exception as e:
+                        print(f"[ANDA ERROR] Failed to launch URL: {e}", flush=True)
         elif system_uri:
+            print(f"[ANDA PHYSICAL EXECUTION] Launching System URI: {system_uri}", flush=True)
             try:
-                os.system(f'start {system_uri}')
+                os.startfile(system_uri)
             except Exception:
-                pass
+                try:
+                    subprocess.Popen(f'cmd /c start {system_uri}', shell=True)
+                except Exception as e:
+                    print(f"[ANDA ERROR] Failed to launch system URI: {e}", flush=True)
 
         route = res.get("route", {})
         action = route.get("action", "execute") if isinstance(route, dict) else "execute"

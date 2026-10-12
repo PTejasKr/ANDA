@@ -52,7 +52,7 @@
     <div class="hero-container">
       <div class="hero-badge">
         <span class="badge-icon">⚡</span>
-        <span>PURE NATIVE WINDOWS APP • 100% FREE GEMMA INTELLIGENCE</span>
+        <span>NATIVE WINDOWS HUD • ZERO LATENCY</span>
       </div>
 
       <h1 class="hero-title">
@@ -61,10 +61,8 @@
       </h1>
 
       <p class="hero-lead">
-        ANDA is an autonomous desktop HUD for Windows, summoned anywhere with 
-        <kbd class="kbd-pill">Left Ctrl</kbd> + <kbd class="kbd-pill">Win</kbd>. 
-        A frameless glass pill consisting strictly of a <strong>Microphone</strong> and <strong>Textbox</strong>. 
-        Zero browser overhead. Runs primarily on the latest <strong>Google Gemma</strong> builds for free background task orchestration.
+        Summoned anywhere with <kbd class="kbd-pill">Left Ctrl</kbd> + <kbd class="kbd-pill">Win</kbd>. 
+        Instant voice and text execution powered by local AI. No browser tabs. No subscription fees.
       </p>
 
       <div class="hero-cta-group">
@@ -72,17 +70,17 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           <div class="cta-text">
             <strong>Download anda.exe</strong>
-            <span>Direct Windows Standalone Executable (70MB)</span>
+            <span>Standalone Windows Executable (61MB)</span>
           </div>
         </a>
 
         <a href="#quickstart" class="btn-cta-secondary">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-          <span>One-Click Install Command</span>
+          <span>Install via PowerShell</span>
         </a>
       </div>
 
-      <!-- Quick Command Terminal Bar -->
+      <!-- Quick Command Terminal Bar (Full Length, Zero Scrollbar) -->
       <div class="terminal-bar" id="quickstart">
         <div class="terminal-label">POWERSHELL ONE-LINE INSTALLER</div>
         <div class="terminal-command-wrap">
@@ -93,9 +91,9 @@
           </button>
         </div>
         <div class="terminal-meta">
-          <span>✓ Auto-registers Windows Startup shortcut</span>
-          <span>✓ Configures Left Ctrl + Win global hardware hook</span>
-          <span>✓ Zero administrator friction</span>
+          <span>✓ Global Left Ctrl + Win shortcut</span>
+          <span>✓ Auto-starts with Windows</span>
+          <span>✓ 100% Free & Local</span>
         </div>
       </div>
     </div>
@@ -104,10 +102,10 @@
   <!-- Interactive Live Native HUD Showcase -->
   <section class="showcase-section" id="showcase">
     <div class="section-header">
-      <span class="section-tag">THE DESKTOP HUD</span>
+      <span class="section-tag">DESKTOP HUD</span>
       <h2 class="section-title">Microphone. Textbox. Nothing Else.</h2>
       <p class="section-desc">
-        No bloated web browser windows. No background tabs to lose. Press <code>Left Ctrl + Win</code> anywhere in Windows to toggle the floating glass pill.
+        Press <code>Left Ctrl + Win</code> anywhere in Windows to toggle the HUD. Fast, private, and always one key away.
       </p>
     </div>
 
@@ -117,7 +115,7 @@
           <span class="circle red"></span>
           <span class="circle yellow"></span>
           <span class="circle green"></span>
-          <span class="mockup-title">Windows 11 Desktop (WinSta0\Default) • Global Hook Active</span>
+          <span class="mockup-title">Windows 11 Desktop • Ready</span>
         </div>
 
         <div class="mockup-screen-area">
@@ -127,17 +125,17 @@
             <div class="desktop-icon">⚙️ Settings</div>
           </div>
 
-          <!-- THE PILL HUD (Interactive Simulation) -->
+          <!-- THE PILL HUD (Interactive Simulation - Pinterest Dark Frosted Hybrid Capsule) -->
           <div class="anda-native-pill" id="demoPill">
-            <!-- 1. Microphone Orb -->
-            <button class="pill-mic-orb" id="demoMicBtn" title="Click to speak (Live Speech-to-Text with auto-enter)">
-              <div class="mic-glow-ring" id="demoMicGlow"></div>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                <line x1="12" y1="19" x2="12" y2="23"/>
-                <line x1="8" y1="23" x2="16" y2="23"/>
-              </svg>
+            <!-- 1. Pinterest Glowing Crimson Red Orb -->
+            <button class="pill-mic-orb" id="demoMicBtn" title="Click to speak / toggle voice recording">
+              <div class="mic-glow-aura" id="demoMicGlow"></div>
+              <div class="mic-orb-outer-ring"></div>
+              <div class="mic-orb-body">
+                <div class="mic-orb-inner-core">
+                  <div class="mic-orb-specular"></div>
+                </div>
+              </div>
             </button>
 
             <!-- 2. Text Input Box -->
@@ -145,8 +143,21 @@
               <input type="text" id="demoInput" placeholder="Ask ANDA anything... (Press Enter to execute)" autocomplete="off">
             </div>
 
-            <!-- 3. Send Button -->
-            <button class="pill-send-btn" id="demoSendBtn" title="Send to Gemma 3">
+            <!-- 3. Pinterest Digital Timer Display (00 MIN. / 03 SEC.) -->
+            <div class="pill-timer-display" id="demoTimerDisplay" title="Voice duration timer">
+              <div class="timer-unit">
+                <span class="timer-num" id="timerMin">00</span>
+                <span class="timer-lbl">MIN.</span>
+              </div>
+              <div class="timer-unit">
+                <span class="timer-indicator-bar"></span>
+                <span class="timer-num" id="timerSec">03</span>
+                <span class="timer-lbl">SEC.</span>
+              </div>
+            </div>
+
+            <!-- 4. Execute / Send Action Button -->
+            <button class="pill-send-btn" id="demoSendBtn" title="Execute command">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
@@ -157,49 +168,48 @@
             <span class="feedback-text" id="demoStatusText">Ready • Press [Left Ctrl + Win] anywhere to summon</span>
           </div>
 
-          <!-- Preset prompt pills for interactive testing (BrightPath AI Action Suite) -->
+          <!-- Preset prompt pills for interactive testing -->
           <div class="prompt-chips">
-            <span class="prompt-chip-label">BRIGHTPATH QUICK ACTIONS:</span>
-            <button class="chip-btn" data-prompt="open youtube">🌐 Open YouTube</button>
-            <button class="chip-btn" data-prompt="search quantum computing on the internet">🔍 Search Internet</button>
+            <span class="prompt-chip-label">QUICK COMMANDS:</span>
+            <button class="chip-btn" data-prompt="open youtube">🌐 YouTube</button>
+            <button class="chip-btn" data-prompt="search quantum computing on the internet">🔍 Search Web</button>
             <button class="chip-btn" data-prompt="open sound settings">⚙️ Sound Settings</button>
             <button class="chip-btn" data-prompt="open display settings">🖥️ Display Settings</button>
             <button class="chip-btn" data-prompt="stage and categorize my downloads">📁 Stage Downloads</button>
             <button class="chip-btn" data-prompt="recall memory for Q4 cloud expenses">🧠 Recall Memory</button>
-            <button class="chip-btn" data-prompt="flash Linux USB on drive E:">🛡️ Flash USB (HITL)</button>
           </div>
 
-          <!-- BrightPath AI Interactive Progress Pathway -->
+          <!-- Progress Pathway -->
           <div class="brightpath-track">
             <div class="brightpath-step active">
               <span class="step-num">01</span>
               <div class="step-meta">
-                <strong>INTENT PERCEPTION</strong>
-                <span>[Ctrl+Win] Hardware Hook & Speech STT</span>
+                <strong>INTENT</strong>
+                <span>Hotkey & Voice Input</span>
               </div>
             </div>
             <div class="brightpath-line"></div>
             <div class="brightpath-step active">
               <span class="step-num">02</span>
               <div class="step-meta">
-                <strong>HOLISTIC AUTOCOMPLETE</strong>
-                <span>Intelligent URL, HTTPS, .com & Settings Resolver</span>
+                <strong>AUTOCOMPLETE</strong>
+                <span>Smart Links & Apps</span>
               </div>
             </div>
             <div class="brightpath-line"></div>
             <div class="brightpath-step active">
               <span class="step-num">03</span>
               <div class="step-meta">
-                <strong>AUTONOMOUS ACTION</strong>
-                <span>Browser Launch, Search Engine, Native Win32</span>
+                <strong>EXECUTION</strong>
+                <span>Browser & Win32 Actions</span>
               </div>
             </div>
             <div class="brightpath-line"></div>
             <div class="brightpath-step active">
               <span class="step-num">04</span>
               <div class="step-meta">
-                <strong>ZERO-TRUST HITL</strong>
-                <span>60s Human-Verified Administrative Tokens</span>
+                <strong>ZERO-TRUST</strong>
+                <span>Confirmation for System Edits</span>
               </div>
             </div>
           </div>
@@ -211,9 +221,9 @@
   <!-- Feature Catalogue Grid -->
   <section class="features-section" id="features">
     <div class="section-header">
-      <span class="section-tag">CATALOGUE OF CAPABILITIES</span>
-      <h2 class="section-title">Built for Speed, Privacy, and Control</h2>
-      <p class="section-desc">Deterministic execution meets modern local AI. Built from the ground up for Windows power users.</p>
+      <span class="section-tag">CAPABILITIES</span>
+      <h2 class="section-title">Speed. Privacy. Absolute Control.</h2>
+      <p class="section-desc">Minimalist native design backed by deterministic execution.</p>
     </div>
 
     <div class="features-grid">
@@ -222,11 +232,11 @@
         <div class="feature-icon-box cyan">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
         </div>
-        <h3 class="feature-title">Pure Native .EXE (Zero Browser)</h3>
+        <h3 class="feature-title">Pure Win32 Native</h3>
         <p class="feature-body">
-          Compiled directly into a Windows binary using native Win32 message loops. It hooks directly into the desktop without spawning Chrome or Edge instances.
+          Lightweight binary compiled for Windows. Zero browser instances, near-zero idle RAM usage.
         </p>
-        <div class="feature-badge">Win32 API • 20ms Hook</div>
+        <div class="feature-badge">Win32 Native • 20ms Hook</div>
       </div>
 
       <!-- Card 2 -->
@@ -234,11 +244,11 @@
         <div class="feature-icon-box purple">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12L2.1 10a10 10 0 0 0 9.9 10V12z"/></svg>
         </div>
-        <h3 class="feature-title">Gemma Free-Tier OS Intelligence</h3>
+        <h3 class="feature-title">Free Local Intelligence</h3>
         <p class="feature-body">
-          Powered primarily by the latest Google Gemma builds (Gemma 2 / Gemma 3). Routes intents, parses system commands, and executes tasks with 100% free offline & edge models.
+          Powered by Google Gemma for offline and edge task execution. Zero subscription or API fees.
         </p>
-        <div class="feature-badge">Ollama • Workers AI • Zero Token Cost</div>
+        <div class="feature-badge">Gemma 3 • Zero Cost</div>
       </div>
 
       <!-- Card 3 -->
@@ -246,11 +256,11 @@
         <div class="feature-icon-box blue">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
-        <h3 class="feature-title">Dual-Plane Security Isolation</h3>
+        <h3 class="feature-title">Dual-Plane Security</h3>
         <p class="feature-body">
-          Unprivileged worker plane runs normal tasks. Potentially dangerous actions (disk format, USB flash, OS updates) require physical Human-In-The-Loop approval via secure Named Pipe IPC.
+          Safe tasks execute in unprivileged sandbox; elevated system actions require physical confirmation.
         </p>
-        <div class="feature-badge">Named Pipes • HITL Authorization</div>
+        <div class="feature-badge">Zero Trust • HITL Gate</div>
       </div>
 
       <!-- Card 4 -->
@@ -258,11 +268,11 @@
         <div class="feature-icon-box emerald">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         </div>
-        <h3 class="feature-title">Auto-Staging & Vector RAG</h3>
+        <h3 class="feature-title">Auto-Staging & Memory</h3>
         <p class="feature-body">
-          Automatically categorizes incoming files into organized staging directories (receipts, financial reports, spreadsheets) and generates semantic vector embeddings for instant retrieval.
+          Automatically sorts downloads and embeds documents into vector memory for instant search.
         </p>
-        <div class="feature-badge">Local Embeddings • Tesseract OCR</div>
+        <div class="feature-badge">Smart Sort • Vector RAG</div>
       </div>
 
       <!-- Card 5 -->
@@ -270,11 +280,11 @@
         <div class="feature-icon-box amber">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
         </div>
-        <h3 class="feature-title">Whisper & Google Speech STT</h3>
+        <h3 class="feature-title">Real-Time Voice Input</h3>
         <p class="feature-body">
-          Click the mic or speak naturally. Multi-tier Speech-to-Text transcribes your spoken commands with sub-second latency and zero subscription fees.
+          Hands-free speech-to-text with automatic silence detection and instant command execution.
         </p>
-        <div class="feature-badge">Free STT • 16kHz Audio Stream</div>
+        <div class="feature-badge">Sub-Second Audio • Local STT</div>
       </div>
 
       <!-- Card 6 -->
@@ -282,11 +292,11 @@
         <div class="feature-icon-box rose">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         </div>
-        <h3 class="feature-title">Quarantine Threat Sandbox</h3>
+        <h3 class="feature-title">Threat Sandbox</h3>
         <p class="feature-body">
-          Built-in heuristic security scanner detects indirect prompt injection, suspicious executables, and malicious command chains, locking them away from your operating system.
+          Proactive security heuristics block prompt injections and suspicious payloads before execution.
         </p>
-        <div class="feature-badge">Prompt Injection Guard • Sandbox Isolation</div>
+        <div class="feature-badge">Injection Guard • Threat Isolation</div>
       </div>
     </div>
   </section>
@@ -294,44 +304,44 @@
   <!-- Architecture Section -->
   <section class="arch-section" id="architecture">
     <div class="section-header">
-      <span class="section-tag">THE 3-LAYER ARCHITECTURE</span>
-      <h2 class="section-title">Designed for Uncompromising Reliability</h2>
-      <p class="section-desc">Separating probabilistic decision making from deterministic execution.</p>
+      <span class="section-tag">ARCHITECTURE</span>
+      <h2 class="section-title">Dual-Plane Isolation</h2>
+      <p class="section-desc">AI plans and routes. Native Windows code executes safely.</p>
     </div>
 
     <div class="arch-flow-diagram">
       <div class="arch-column">
-        <div class="arch-badge">LAYER 1: USER & INTENT</div>
+        <div class="arch-badge">LAYER 1: INTERACTION</div>
         <div class="arch-card">
           <div class="arch-title">Native Floating HUD</div>
-          <p class="arch-text">Frameless pill summoned via Left Ctrl + Win. Takes voice (mic) or text instructions.</p>
-          <div class="arch-endpoint">Hardware Key Poller (20ms)</div>
+          <p class="arch-text">Frameless glass pill summoned via Left Ctrl + Win. Accepts instant voice or text input.</p>
+          <div class="arch-endpoint">Win32 Global Hook</div>
         </div>
       </div>
 
       <div class="arch-arrow">➔</div>
 
       <div class="arch-column">
-        <div class="arch-badge">LAYER 2: ORCHESTRATION</div>
+        <div class="arch-badge">LAYER 2: ROUTING</div>
         <div class="arch-card">
           <div class="arch-title">Go Orchestrator (:8080)</div>
-          <p class="arch-text">Parses intent using Gemma, checks prompt injection heuristics, and issues capability tokens.</p>
-          <div class="arch-endpoint">POST /api/orchestrator/command</div>
+          <p class="arch-text">Classifies intent with Gemma, validates URLs, and enforces security constraints.</p>
+          <div class="arch-endpoint">REST API (:8080)</div>
         </div>
       </div>
 
       <div class="arch-arrow">➔</div>
 
       <div class="arch-column">
-        <div class="arch-badge">LAYER 3: DUAL-PLANE EXECUTION</div>
+        <div class="arch-badge">LAYER 3: EXECUTION</div>
         <div class="arch-card split-card">
           <div class="sub-plane unprivileged">
-            <strong>Unprivileged Worker Plane (:50051)</strong>
-            <span>Extracts data, stages files, computes RAG embeddings. No system privileges.</span>
+            <strong>Worker Plane (:50051)</strong>
+            <span>Safe tasks, downloads, and vector memory search.</span>
           </div>
           <div class="sub-plane elevated">
-            <strong>Elevated Daemon (\\.\pipe\anda_daemon_ipc)</strong>
-            <span>Runs as Administrator. Executes disk flash & OS updates only after physical HITL approval.</span>
+            <strong>Host Daemon (:8081)</strong>
+            <span>Administrative operations requiring physical confirmation.</span>
           </div>
         </div>
       </div>
@@ -342,39 +352,39 @@
   <section class="gemma-section" id="gemma">
     <div class="section-header">
       <span class="section-tag">INFERENCE ENGINE</span>
-      <h2 class="section-title">Powered by Gemma (Latest Build) for Free</h2>
-      <p class="section-desc">ANDA is designed to run 100% free without expensive API subscriptions.</p>
+      <h2 class="section-title">Run Free. Run Local.</h2>
+      <p class="section-desc">Choose your inference provider with zero subscription fees.</p>
     </div>
 
     <div class="gemma-cards-grid">
       <div class="gemma-card highlight">
         <div class="gemma-card-header">
-          <span class="gemma-pill">DEFAULT & RECOMMENDED</span>
+          <span class="gemma-pill">LOCAL DEFAULT</span>
           <h3>Local Ollama (Gemma 2B / 7B)</h3>
         </div>
-        <p>Run completely offline on your laptop with zero latency and complete privacy.</p>
+        <p>100% offline execution on your device. Complete privacy with zero latency.</p>
         <div class="code-box">
           <code>ollama run gemma2:2b</code>
         </div>
         <ul class="check-list">
           <li>✓ 100% offline execution</li>
-          <li>✓ Zero API keys or tokens required</li>
-          <li>✓ Automatically detected on port 11434</li>
+          <li>✓ Zero API keys required</li>
+          <li>✓ Auto-detected on port 11434</li>
         </ul>
       </div>
 
       <div class="gemma-card">
         <div class="gemma-card-header">
-          <span class="gemma-pill">CLOUD FREE TIER</span>
-          <h3>Cloudflare Workers AI (Gemma 7B)</h3>
+          <span class="gemma-pill">FREE CLOUD TIER</span>
+          <h3>Cloudflare Workers AI</h3>
         </div>
-        <p>Free serverless inference hosted on Cloudflare's edge network using <code>@cf/google/gemma-7b-it</code>.</p>
+        <p>Serverless edge inference using Gemma 7B with zero local RAM usage.</p>
         <div class="code-box">
           <code>DEFAULT_AI_MODEL = "@cf/google/gemma-7b-it"</code>
         </div>
         <ul class="check-list">
           <li>✓ Zero local compute overhead</li>
-          <li>✓ Free tier included out of the box</li>
+          <li>✓ Free tier out of the box</li>
           <li>✓ Sub-second edge inference</li>
         </ul>
       </div>
@@ -382,16 +392,16 @@
       <div class="gemma-card">
         <div class="gemma-card-header">
           <span class="gemma-pill">LOCAL GUI</span>
-          <h3>LM Studio (Gemma GGUF)</h3>
+          <h3>LM Studio / Local GGUF</h3>
         </div>
-        <p>Load any quantized Gemma GGUF build with GPU acceleration in LM Studio.</p>
+        <p>GPU-accelerated local inference compatible with any quantized GGUF model.</p>
         <div class="code-box">
           <code>http://127.0.0.1:1234/v1/models</code>
         </div>
         <ul class="check-list">
-          <li>✓ CUDA / Metal / DirectML accelerated</li>
-          <li>✓ Compatible with all GGUF quantizations</li>
-          <li>✓ OpenAI-compatible endpoint</li>
+          <li>✓ CUDA / DirectML accelerated</li>
+          <li>✓ Compatible with all GGUF builds</li>
+          <li>✓ Standard OpenAI endpoint</li>
         </ul>
       </div>
     </div>
@@ -400,53 +410,44 @@
   <!-- Settings & Informatics Guide -->
   <section class="settings-section" id="settings">
     <div class="section-header">
-      <span class="section-tag">CONFIGURATION & INFORMATICS</span>
-      <h2 class="section-title">Settings & System Calibration</h2>
-      <p class="section-desc">Customizing hotkeys, audio devices, and security rules.</p>
+      <span class="section-tag">CONFIGURATION</span>
+      <h2 class="section-title">Settings & Controls</h2>
+      <p class="section-desc">Key bindings and system permissions.</p>
     </div>
 
     <div class="settings-accordion">
       <div class="accordion-item">
         <div class="accordion-header">
-          <span class="accordion-title">⌨️ Hardware Keyboard Shortcut Setup</span>
+          <span class="accordion-title">⌨️ Global Shortcut</span>
           <span class="accordion-toggle">+</span>
         </div>
         <div class="accordion-content">
           <p>
-            The default shortcut is <strong>Left Ctrl + Windows Key</strong>. The daemon captures this using raw Win32 asynchronous keystroke state (<code>VK_LCONTROL</code> = 0xA2, <code>VK_LWIN</code> = 0x5B) polled every 20ms with debouncing.
-          </p>
-          <p>
-            To dismiss the floating pill at any time, simply press <kbd class="kbd-pill">Escape</kbd> or click anywhere outside the window.
+            Press <strong>Left Ctrl + Windows Key</strong> anywhere in Windows to toggle the HUD. Press <kbd class="kbd-pill">Escape</kbd> or click outside to dismiss.
           </p>
         </div>
       </div>
 
       <div class="accordion-item">
         <div class="accordion-header">
-          <span class="accordion-title">🎙️ Audio & Microphone Calibration</span>
+          <span class="accordion-title">🎙️ Microphone Access</span>
           <span class="accordion-toggle">+</span>
         </div>
         <div class="accordion-content">
           <p>
-            ANDA uses standard 16kHz mono audio streams. When you click the microphone orb on the floating HUD, it activates the default Windows recording device.
-          </p>
-          <p>
-            Speech is transcribed automatically via Google Speech / Whisper with local fallback. Ensure Windows Microphone privacy settings have permitted desktop apps.
+            Click the mic orb or speak naturally. Uses standard Windows audio input with automatic silence detection and instant transcription.
           </p>
         </div>
       </div>
 
       <div class="accordion-item">
         <div class="accordion-header">
-          <span class="accordion-title">🛡️ Elevated Daemon & Human-In-The-Loop Safety</span>
+          <span class="accordion-title">🛡️ Security & Approvals</span>
           <span class="accordion-toggle">+</span>
         </div>
         <div class="accordion-content">
           <p>
-            To prevent accidental destruction of operating system data, tasks such as USB flashing, drive formatting, or kernel updates cannot be executed silently by the AI.
-          </p>
-          <p>
-            The Elevated Daemon drafts a cryptographically hashed capability token and pauses execution until a physical human confirms the prompt.
+            Destructive actions (disk operations, hardware modifications) trigger a confirmation dialog before proceeding.
           </p>
         </div>
       </div>

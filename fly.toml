@@ -1,6 +1,6 @@
-# fly.toml app configuration file for Omni-Operator
+# fly.toml app configuration file for ANDA
 
-app = "anda-omni-operator"
+app = "project-anda"
 primary_region = "iad"
 
 [build]
@@ -15,7 +15,7 @@ primary_region = "iad"
   ENV = "production"
 
 [mounts]
-  source = "omni_vector_data"
+  source = "anda_vector_data"
   destination = "/app/storage"
 
 [http_service]

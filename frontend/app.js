@@ -41,7 +41,7 @@
   async function executeDemoPrompt(prompt) {
     if (!prompt.trim()) return;
 
-    demoStatusText.textContent = '🧠 Gemma 3: Reasoning & classifying intent...';
+    demoStatusText.textContent = '🧠 Processing command...';
     demoStatusText.style.color = '#38BDF8';
 
     try {
@@ -58,10 +58,10 @@
 
         if (data.target_url) {
           try { window.open(data.target_url, '_blank'); } catch (e) {}
-          demoStatusText.innerHTML = `✅ [${action}]: Opened <a href="${data.target_url}" target="_blank" style="color:#38BDF8;text-decoration:underline;font-weight:600;">${data.target_url}</a>`;
+          demoStatusText.innerHTML = `✅ [${action}]: Opening <a href="${data.target_url}" target="_blank" rel="noopener noreferrer" style="color:#38BDF8;text-decoration:underline;font-weight:700;">${data.target_url} ↗</a> <span style="color:#94A3B8;font-size:12px;">(Click link if popup blocked)</span>`;
         } else if (data.system_uri) {
           try { window.location.href = data.system_uri; } catch (e) {}
-          demoStatusText.innerHTML = `⚙️ [${action}]: Dispatched <a href="${data.system_uri}" style="color:#38BDF8;text-decoration:underline;font-weight:600;">${data.system_uri}</a>`;
+          demoStatusText.innerHTML = `⚙️ [${action}]: Dispatched <a href="${data.system_uri}" style="color:#38BDF8;text-decoration:underline;font-weight:700;">${data.system_uri}</a> <span style="color:#94A3B8;font-size:12px;">(Click to trigger system handler)</span>`;
         } else {
           demoStatusText.textContent = `✅ Done [${action}]: ${msg}`;
         }
@@ -211,16 +211,16 @@
       return;
     } else if (lower.includes('stage') || lower.includes('categorize') || lower.includes('download')) {
       action = 'stage_files';
-      msg = 'Staged 4 receipts, 2 financial reports, and 3 spreadsheets into categorized storage.';
+      msg = 'Downloads organized and indexed into categorized storage.';
     } else if (lower.includes('memory') || lower.includes('recall')) {
       action = 'query_memory';
-      msg = 'Found 3 semantic matches in vector memory (Confidence: 96%).';
+      msg = 'Retrieved relevant context from vector memory.';
     } else if (lower.includes('flash') || lower.includes('usb') || lower.includes('format')) {
       action = 'flash_usb';
-      msg = 'Elevated action prepared: Capability token cap-01 drafted. Awaiting physical HITL approval.';
+      msg = 'Administrative action paused for physical confirmation.';
     } else if (lower.includes('receipt') || lower.includes('extract')) {
       action = 'extract_data';
-      msg = 'Parsed invoice total $14,290.00 via unprivileged Tesseract engine.';
+      msg = 'Document parsed and indexed successfully.';
     }
 
     demoStatusText.textContent = `✅ Done [${action}]: ${msg}`;
@@ -255,13 +255,45 @@
   let lastRecognizedText = '';
 
   const SAMPLE_VOICE_PROMPTS = [
-    'Stage and organize all my pending financial spreadsheets',
-    'Recall vector memory for Q4 cloud expenses and vendor contracts',
-    'Extract invoice line items from receipt_aws_cloud_infra.png',
-    'Flash recovery payload to USB drive E with capability token',
-    'Run zero-trust security scan across all quarantined files'
+    'Open YouTube in default browser',
+    'Search quantum computing on the internet',
+    'Open sound settings',
+    'Stage and organize my pending downloads',
+    'Recall vector memory for Q4 cloud expenses'
   ];
   let samplePromptIdx = 0;
+
+  const timerMin = document.getElementById('timerMin');
+  const timerSec = document.getElementById('timerSec');
+  let timerInterval = null;
+  let timerElapsedSeconds = 0;
+
+  function startDurationTimer() {
+    clearInterval(timerInterval);
+    timerElapsedSeconds = 0;
+    updateTimerDisplay(0);
+    timerInterval = setInterval(() => {
+      timerElapsedSeconds++;
+      updateTimerDisplay(timerElapsedSeconds);
+    }, 1000);
+  }
+
+  function stopDurationTimer() {
+    clearInterval(timerInterval);
+    setTimeout(() => {
+      if (!isListening) {
+        if (timerMin) timerMin.textContent = '00';
+        if (timerSec) timerSec.textContent = '03';
+      }
+    }, 3000);
+  }
+
+  function updateTimerDisplay(totalSeconds) {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    if (timerMin) timerMin.textContent = String(mins).padStart(2, '0');
+    if (timerSec) timerSec.textContent = String(secs).padStart(2, '0');
+  }
 
   function initWebSpeech() {
     if (!SpeechRecognition) return null;
@@ -276,8 +308,9 @@
         isListening = true;
         lastRecognizedText = '';
         demoMicBtn.classList.add('active');
-        demoStatusText.textContent = '🎙️ Listening... Speak your command (auto-enters on pause)';
-        demoStatusText.style.color = '#38BDF8';
+        startDurationTimer();
+        demoStatusText.textContent = '🎙️ Listening... Speak your command';
+        demoStatusText.style.color = '#FF4D5A';
       };
 
       rec.onresult = (event) => {
@@ -314,6 +347,7 @@
       rec.onend = () => {
         isListening = false;
         demoMicBtn.classList.remove('active');
+        stopDurationTimer();
         const textToSubmit = (lastRecognizedText || demoInput.value || '').trim();
         if (textToSubmit) {
           demoInput.value = textToSubmit;
@@ -329,6 +363,7 @@
       rec.onerror = (event) => {
         isListening = false;
         demoMicBtn.classList.remove('active');
+        stopDurationTimer();
         if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
           demoStatusText.textContent = '⚠️ Mic access blocked. Allow permissions or type prompt.';
           demoStatusText.style.color = '#EF4444';
@@ -363,8 +398,9 @@
       mediaRecorder = new MediaRecorder(stream);
       isListening = true;
       demoMicBtn.classList.add('active');
+      startDurationTimer();
       demoStatusText.textContent = '🎙️ Recording voice... Click mic when done to enter';
-      demoStatusText.style.color = '#38BDF8';
+      demoStatusText.style.color = '#FF4D5A';
 
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) audioChunks.push(e.data);
@@ -374,6 +410,7 @@
         stream.getTracks().forEach((t) => t.stop());
         demoMicBtn.classList.remove('active');
         isListening = false;
+        stopDurationTimer();
 
         if (audioChunks.length === 0) {
           fallbackSimulatedSTT();

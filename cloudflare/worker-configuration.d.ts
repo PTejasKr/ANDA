@@ -3,7 +3,7 @@
 // Runtime types generated with workerd@1.20260617.1 2024-04-05 
 interface __BaseEnv_Env {
 	AI: Ai;
-	FLY_ORCHESTRATOR_URL: "https://anda-omni-operator.fly.dev";
+	FLY_ORCHESTRATOR_URL: "https://project-anda.fly.dev";
 	DEFAULT_AI_MODEL: "@cf/google/gemma-7b-it";
 }
 declare namespace Cloudflare {
