@@ -268,11 +268,11 @@
           </div>
         </button>
 
-        <!-- Command Input Textbox -->
-        <div class="hud-input-wrap">
-          <span class="hud-input-prefix">⌘</span>
-          <input type="text" id="hudInput" placeholder="Type or speak: open Spotify, search web, sound settings..." autocomplete="off" />
-          <span class="hud-input-hint">↵ Run</span>
+        <!-- Hybrid Beige Textbox (Pinterest Capsule + Spotlight Search Bar) -->
+        <div class="hud-input-wrap hybrid-beige-box" id="hudHybridBox">
+          <span class="spotlight-leading-badge">🔍 Spotlight</span>
+          <input type="text" id="hudInput" placeholder="Spotlight: Type 'open cyberpunk', math, apps..." autocomplete="off" />
+          <span class="spotlight-trailing-key">↵ Launch</span>
         </div>
 
         <!-- Digital Timer -->
@@ -292,6 +292,14 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
 
+        <!-- Spotlight Live Results Overlay Dropdown -->
+        <div class="spotlight-results-overlay" id="spotlightOverlay">
+          <div class="spotlight-header-tag">SPOTLIGHT QUICK MATCHES</div>
+          <div class="spotlight-items-list" id="spotlightList">
+            <!-- Dynamically populated via app.js -->
+          </div>
+        </div>
+
       </div>
 
       <!-- Live Execution Feedback Strip -->
@@ -302,13 +310,13 @@
 
       <!-- Quick-Action Prompt Chips for Instant Testing -->
       <div class="preset-chips-cluster">
-        <span class="chips-label">QUICK ACTIONS:</span>
-        <button class="preset-chip" data-prompt="search on internet for latest technology trends">🌐 Search: Tech Trends</button>
-        <button class="preset-chip" data-prompt="open spotify">🎵 Open Spotify</button>
+        <span class="chips-label">SPOTLIGHT SHORTCUTS:</span>
+        <button class="preset-chip" data-prompt="open cyberpunk">🎮 Cyberpunk 2077</button>
+        <button class="preset-chip" data-prompt="45 * 12 + 10">🔢 Math: 45 * 12 + 10</button>
+        <button class="preset-chip" data-prompt="open youtube">🌐 Web: YouTube</button>
         <button class="preset-chip" data-prompt="open sound settings">⚙️ Sound Settings</button>
         <button class="preset-chip" data-prompt="open downloads folder">📁 Open Downloads</button>
-        <button class="preset-chip" data-prompt="calculate 45 * 12 + 10">🔢 Math: 45 * 12 + 10</button>
-        <button class="preset-chip" data-prompt="open terminal">💻 Dev Terminal</button>
+        <button class="preset-chip" data-prompt="open half life (uninstalled web fallback)">🔍 Web Fallback</button>
       </div>
     </div>
   </section>
