@@ -11,6 +11,8 @@ import contextlib
 from http.server import ThreadingHTTPServer, HTTPServer, SimpleHTTPRequestHandler
 
 PORT = int(os.environ.get("ORCHESTRATOR_PORT", 8080))
+HOST = os.environ.get("ANDA_HOST", "127.0.0.1")
+ALLOWED_ORIGIN = os.environ.get("ANDA_CORS_ORIGIN", f"http://localhost:{PORT}")
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "frontend")
 
 
@@ -19,8 +21,8 @@ class OmniHandler(SimpleHTTPRequestHandler):
         super().__init__(*args, directory=FRONTEND_DIR, **kwargs)
 
     def end_headers(self):
-        # Allow cross-origin and disable caching during development
-        self.send_header("Access-Control-Allow-Origin", "*")
+        # Restrict cross-origin access to configured origin and disable caching
+        self.send_header("Access-Control-Allow-Origin", ALLOWED_ORIGIN)
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
         super().end_headers()
@@ -71,10 +73,13 @@ class DualStackServer(ThreadingHTTPServer):
 
 def run():
     try:
-        httpd = DualStackServer(("::", PORT), OmniHandler)
+        if HOST == "::":
+            httpd = DualStackServer(("::", PORT), OmniHandler)
+        else:
+            httpd = ThreadingHTTPServer((HOST, PORT), OmniHandler)
     except Exception:
-        # Fallback to standard IPv4
-        httpd = HTTPServer(("0.0.0.0", PORT), OmniHandler)
+        # Fallback to loopback IPv4
+        httpd = HTTPServer(("127.0.0.1", PORT), OmniHandler)
 
     if sys.stdout is not None:
         print(f"[*] ANDA UI running at: http://localhost:{PORT}")
